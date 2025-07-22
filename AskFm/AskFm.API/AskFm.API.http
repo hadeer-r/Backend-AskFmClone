@@ -1,0 +1,6 @@
+@AskFm.API_HostAddress = http://localhost:5180
+
+GET {{AskFm.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
