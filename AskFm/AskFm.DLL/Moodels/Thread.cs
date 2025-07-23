@@ -1,0 +1,21 @@
+using Shared;
+
+namespace AskFm.DLL.Moodels;
+public class Thread
+{
+    public int Id { get; set; }
+    public string QuestionContent { get; set; }
+    public string AnswerContent { get; set; }
+
+    public ThreadStatus Status {get; set;}
+    public bool isAnonymous { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int AskerId { get; set; }
+    public User Asker { get; set; }
+    
+    public int AskedId { get; set; }
+    public User Asked { get; set; }
+    
+    public ICollection<Comment> Comments { get; set; }
+    public ICollection<ThreadLike> ThreadLikes { get; set; }
+}
