@@ -40,14 +40,6 @@ public class ThreadConfigration : IEntityTypeConfiguration<Thread>
             .HasForeignKey(t => t.AskedId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(t => t.Comments)
-            .WithOne(c => c.Thread)
-            .HasForeignKey(c => c.ThreadId)
-            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(t => t.ThreadLikes)
-            .WithOne(l => l.Thread)
-            .HasForeignKey(l => l.ThreadId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

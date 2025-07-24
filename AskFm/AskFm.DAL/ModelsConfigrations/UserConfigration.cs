@@ -10,6 +10,13 @@ public class UserConfigration : IEntityTypeConfiguration<User>
         builder.HasKey(x => x.Id);
         builder.HasIndex(u => u.Username).IsUnique();
 
+        builder.Property(u => u.Name)
+            .HasMaxLength(50)
+            .IsRequired();
+        
+        builder.Property(u => u.Bio)
+            .HasMaxLength(500);
+        
         builder.Property(x => x.Username).IsRequired();
 
         builder.Property(x => x.Password)
@@ -20,12 +27,6 @@ public class UserConfigration : IEntityTypeConfiguration<User>
             .HasMaxLength(255)
             .IsRequired();
 
-        builder.HasMany(u => u.AskedThreads)
-            .WithOne(t => t.Asker)
-            .HasForeignKey(t => t.AskerId);
 
-        builder.HasMany(u => u.ReceivedThreads)
-            .WithOne(t => t.Asked)
-            .HasForeignKey(t => t.AskedId);
     }
 }

@@ -16,6 +16,6 @@ public class Thread
     public int AskedId { get; set; }
     public User Asked { get; set; }
 
-    public ICollection<Comment> Comments { get; set; }
-    public ICollection<ThreadLike> ThreadLikes { get; set; }
+    public virtual ICollection<Comment>? Comments { get; set; }
+    public virtual ICollection<ThreadLike>? ThreadLikes { get; set; }
 }

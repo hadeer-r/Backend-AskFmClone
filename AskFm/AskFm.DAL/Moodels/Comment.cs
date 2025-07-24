@@ -14,8 +14,8 @@ public class Comment
     public Thread Thread { get; set; }
 
     public int? ParentCommentId { get; }
-    public Comment ParentComment { get; set; }
+    public Comment? ParentComment { get; set; }
 
-    public ICollection<Comment> Replies { get; set; }
-    public ICollection<CommentLike> CommentLikes { get; set; }
+    public virtual ICollection<Comment>? Replies { get; set; }
+    public virtual ICollection<CommentLike>? CommentLikes { get; set; }
 }

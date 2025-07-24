@@ -7,7 +7,5 @@ public class Follow
     public int FollowedId { get; set; }
 
     public User Followed { get; set; }
-    public int FollwerCount { get; set; }
-    public int FollwingCount { get; set; }
     public DateTime CreatedAt { get; set; }
 }
