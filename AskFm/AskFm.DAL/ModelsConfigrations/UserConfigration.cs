@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace AskFm.DLL.Moodels;
+namespace AskFm.DAL.Moodels;
 
 public class UserConfigration : IEntityTypeConfiguration<User>
 {
@@ -9,13 +9,13 @@ public class UserConfigration : IEntityTypeConfiguration<User>
     {
         builder.HasKey(x => x.Id);
         builder.HasIndex(u => u.Username).IsUnique();
-        
+
         builder.Property(x => x.Username).IsRequired();
-        
+
         builder.Property(x => x.Password)
             .HasMaxLength(225)
             .IsRequired();
-        
+
         builder.Property(x => x.Email)
             .HasMaxLength(255)
             .IsRequired();

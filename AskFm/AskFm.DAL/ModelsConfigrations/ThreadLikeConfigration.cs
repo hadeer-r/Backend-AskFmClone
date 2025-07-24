@@ -1,8 +1,8 @@
-using AskFm.DLL.Moodels;
+using AskFm.DAL.Moodels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace AskFm.DLL.ModelsConfigrations;
+namespace AskFm.DAL.ModelsConfigrations;
 
 public class ThreadLikeConfigration : IEntityTypeConfiguration<ThreadLike>
 {

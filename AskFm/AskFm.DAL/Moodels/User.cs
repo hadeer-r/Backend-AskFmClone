@@ -1,4 +1,4 @@
-namespace AskFm.DLL.Moodels;
+namespace AskFm.DAL.Moodels;
 
 public class User
 {
@@ -13,7 +13,7 @@ public class User
     public int FolloweingCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime LastSeen { get; set; }
-    
+
     public ICollection<Thread> AskedThreads { get; set; }
     public ICollection<Thread> ReceivedThreads { get; set; }
     public ICollection<Comment> Comments { get; set; }
@@ -22,5 +22,4 @@ public class User
     public ICollection<ThreadLike> QuestionLikes { get; set; }
     public ICollection<CommentLike> CommentLikes { get; set; }
     public ICollection<Notification> Notifications { get; set; }
-    
 }

@@ -1,7 +1,8 @@
+using AskFm.DAL.Moodels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace AskFm.DLL.Moodels;
+namespace AskFm.DAL.ModelsConfigrations;
 
 public class FollowConfigration : IEntityTypeConfiguration<Follow>
 {

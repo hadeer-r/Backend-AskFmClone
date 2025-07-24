@@ -1,8 +1,8 @@
-using AskFm.DLL.Moodels;
+using AskFm.DAL.Moodels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace AskFm.DLL.ModelsConfigrations;
+namespace AskFm.DAL.ModelsConfigrations;
 
 public class CommentConfigration : IEntityTypeConfiguration<Comment>
 {
@@ -17,7 +17,7 @@ public class CommentConfigration : IEntityTypeConfiguration<Comment>
         builder.Property(c => c.CreatedAt)
             .HasColumnType("datetime")
             .IsRequired();
-        
+
         builder.HasOne(c => c.User)
             .WithMany(u => u.Comments)
             .HasForeignKey(c => c.UserId)
@@ -32,6 +32,5 @@ public class CommentConfigration : IEntityTypeConfiguration<Comment>
             .WithMany(c => c.Replies)
             .HasForeignKey(c => c.ParentCommentId)
             .OnDelete(DeleteBehavior.Restrict);
-        
     }
 }

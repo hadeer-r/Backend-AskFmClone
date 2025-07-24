@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Thread = AskFm.DAL.Moodels.Thread;
 
-namespace AskFm.DLL.Moodels;
+namespace AskFm.DAL.ModelsConfigrations;
 
 public class ThreadConfigration : IEntityTypeConfiguration<Thread>
 {
@@ -30,12 +31,12 @@ public class ThreadConfigration : IEntityTypeConfiguration<Thread>
             .IsRequired();
 
         builder.HasOne(t => t.Asker)
-            .WithMany(u => u.AskedThreads) 
+            .WithMany(u => u.AskedThreads)
             .HasForeignKey(t => t.AskerId)
-            .OnDelete(DeleteBehavior.Restrict); 
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(t => t.Asked)
-            .WithMany(u => u.ReceivedThreads) 
+            .WithMany(u => u.ReceivedThreads)
             .HasForeignKey(t => t.AskedId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -49,5 +50,4 @@ public class ThreadConfigration : IEntityTypeConfiguration<Thread>
             .HasForeignKey(l => l.ThreadId)
             .OnDelete(DeleteBehavior.Cascade);
     }
-    
 }

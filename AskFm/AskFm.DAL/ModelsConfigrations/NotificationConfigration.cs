@@ -1,13 +1,13 @@
+using AskFm.DAL.Moodels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace AskFm.DLL.Moodels;
+namespace AskFm.DAL.ModelsConfigrations;
 
 public class NotificationConfigration : IEntityTypeConfiguration<Notification>
 {
     public void Configure(EntityTypeBuilder<Notification> builder)
     {
-
         builder.HasKey(n => n.Id);
 
         builder.Property(n => n.jsonContent)

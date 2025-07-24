@@ -1,13 +1,14 @@
-using AskFm.DLL.Moodels;
+using AskFm.DAL.Moodels;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Thread = AskFm.DLL.Moodels.Thread;
+using Thread = AskFm.DAL.Moodels.Thread;
 
-namespace AskFm.DLL;
+namespace AskFm.DAL;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options){}
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
 
     public DbSet<User> Users { get; set; }
     public DbSet<Thread> Threads { get; set; }
@@ -16,7 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<ThreadLike> QuestionLikes { get; set; }
     public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<Notification> Notifications { get; set; }
-    
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

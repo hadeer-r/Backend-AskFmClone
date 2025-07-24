@@ -1,4 +1,4 @@
-namespace AskFm.DLL.Moodels;
+namespace AskFm.DAL.Moodels;
 
 public class CommentLike
 {

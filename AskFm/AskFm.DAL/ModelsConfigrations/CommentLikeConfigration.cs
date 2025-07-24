@@ -1,9 +1,8 @@
-using AskFm.DLL.Moodels;
+using AskFm.DAL.Moodels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-
-namespace AskFm.DLL.ModelsConfigrations;
+namespace AskFm.DAL.ModelsConfigrations;
 
 public class CommentLikeConfigration : IEntityTypeConfiguration<CommentLike>
 {
@@ -14,7 +13,7 @@ public class CommentLikeConfigration : IEntityTypeConfiguration<CommentLike>
         builder.Property(cl => cl.CreatedAt)
             .HasColumnType("datetime")
             .IsRequired();
-        
+
         builder.HasOne(cl => cl.User)
             .WithMany(u => u.CommentLikes)
             .HasForeignKey(cl => cl.UserId)
