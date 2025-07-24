@@ -8,13 +8,13 @@ public class Comment
     public int LikeCount { get; set; }
 
     public int UserId { get; set; }
-    public User User { get; set; }
+    public virtual User? User { get; set; }
 
     public int ThreadId { get; set; }
-    public Thread Thread { get; set; }
+    public virtual Thread? Thread { get; set; }
 
     public int? ParentCommentId { get; }
-    public Comment? ParentComment { get; set; }
+    public virtual Comment? ParentComment { get; set; }
 
     public virtual ICollection<Comment>? Replies { get; set; }
     public virtual ICollection<CommentLike>? CommentLikes { get; set; }
