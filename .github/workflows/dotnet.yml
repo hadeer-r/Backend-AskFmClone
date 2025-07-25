@@ -38,11 +38,7 @@ jobs:
       run: dotnet restore ./AskFm/AskFm.sln
 
     - name: Build
-      run: dotnet build --no-restore --configuration Release
+      run: dotnet build ./AskFm/AskFm.sln --no-restore --configuration Release
 
     - name: Run Tests
-      run: |
-        for proj in $(find . -type f -name "*.csproj" | grep -i test); do
-          echo "Testing $proj"
-          dotnet test "$proj" --no-build --configuration Release --verbosity normal
-        done
+      run:  dotnet test ./AskFm/AskFm.sln --no-build
