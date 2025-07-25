@@ -35,7 +35,7 @@ jobs:
         ls -a
       
     - name: Restore dependencies
-      run: dotnet restore ./AskFm.sln
+      run: dotnet restore ./AskFm/AskFm.sln
 
     - name: Build
       run: dotnet build --no-restore --configuration Release
