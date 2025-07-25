@@ -26,7 +26,14 @@ jobs:
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
-
+  
+    - name: Show file tree for debug
+      run: |
+        echo "Listing repo structure:"
+        find . -type f
+        echo "making ls -a"
+        ls -a
+      
     - name: Restore dependencies
       run: dotnet restore ./AskFm.sln
 
