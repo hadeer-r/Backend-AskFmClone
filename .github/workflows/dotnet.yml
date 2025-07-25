@@ -39,6 +39,10 @@ jobs:
 
     - name: Build
       run: dotnet build ./AskFm/AskFm.sln --no-restore --configuration Release
+      
+    - name: Build test projects
+      run: |
+        dotnet build ./AskFm/Tests/Tests.csproj --configuration Release
 
     - name: Run Tests
-      run:  dotnet test ./AskFm/AskFm.sln --no-build
+      run:  dotnet test ./AskFm/Tests/Tests.csproj --no-build --configuration Release --verbosity normal
