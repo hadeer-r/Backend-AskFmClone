@@ -27,6 +27,5 @@ public class UserConfigration : IEntityTypeConfiguration<User>
             .HasMaxLength(255)
             .IsRequired();
 
-
     }
 }

@@ -12,10 +12,12 @@ public class FollowConfigration : IEntityTypeConfiguration<Follow>
 
         builder.HasOne(f => f.Follower)
             .WithMany(u => u.Following)
-            .HasForeignKey(f => f.FollowerId);
-
+            .HasForeignKey(f => f.FollowerId)
+            .OnDelete(DeleteBehavior.NoAction);
+        
         builder.HasOne(f => f.Followed)
             .WithMany(u => u.Followers)
-            .HasForeignKey(f => f.FollowedId);
+            .HasForeignKey(f => f.FollowedId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

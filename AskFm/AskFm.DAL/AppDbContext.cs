@@ -14,7 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<Thread> Threads { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Follow> Follows { get; set; }
-    public DbSet<ThreadLike> QuestionLikes { get; set; }
+    public DbSet<ThreadLike> ThreadLikes { get; set; }
     public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<Notification> Notifications { get; set; }
 

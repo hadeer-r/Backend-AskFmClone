@@ -18,10 +18,6 @@ public class CommentConfigration : IEntityTypeConfiguration<Comment>
             .HasColumnType("datetime")
             .IsRequired();
 
-        builder.HasOne(c => c.User)
-            .WithMany(u => u.Comments)
-            .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(c => c.Thread)
             .WithMany(t => t.Comments)
@@ -31,6 +27,13 @@ public class CommentConfigration : IEntityTypeConfiguration<Comment>
         builder.HasOne(c => c.ParentComment)
             .WithMany(c => c.Replies)
             .HasForeignKey(c => c.ParentCommentId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.ClientSetNull);
+        
+        
+        builder.HasOne(c => c.User)
+            .WithMany(u => u.Comments)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+            // Do Manual clean up
     }
 }
