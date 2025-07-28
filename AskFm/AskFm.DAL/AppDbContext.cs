@@ -17,7 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<ThreadLike> ThreadLikes { get; set; }
     public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<Notification> Notifications { get; set; }
-
+    public DbSet<SavedThreads> SavedThreads { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

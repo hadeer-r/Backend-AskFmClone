@@ -18,4 +18,5 @@ public class Thread
 
     public virtual ICollection<Comment>? Comments { get; set; }
     public virtual ICollection<ThreadLike>? ThreadLikes { get; set; }
+    public virtual ICollection<SavedThreads>? SavedThreads { get; set; }
 }

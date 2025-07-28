@@ -24,4 +24,6 @@ public class User
     public virtual ICollection<ThreadLike>? ThreadLikes { get; set; }
     public virtual ICollection<CommentLike>? CommentLikes { get; set; }
     public virtual ICollection<Notification>? Notifications { get; set; }
+    public virtual ICollection<SavedThreads>? SavedThreads { get; set; }
+    
 }
