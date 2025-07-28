@@ -8,4 +8,7 @@ public class Follow
 
     public virtual User? Followed { get; set; }
     public DateTime CreatedAt { get; set; }
+    
+    // is this follow available
+    public bool IsActive { get; set; } = true;
 }

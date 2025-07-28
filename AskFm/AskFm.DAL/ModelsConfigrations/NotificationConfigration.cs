@@ -11,7 +11,7 @@ public class NotificationConfigration : IEntityTypeConfiguration<Notification>
         builder.HasKey(n => n.Id);
 
         builder.Property(n => n.jsonContent)
-            .HasColumnType("JSON");
+            .HasColumnType("NVARCHAR");
 
         builder.Property(n => n.isRead)
             .IsRequired();

@@ -10,6 +10,7 @@ public class FollowConfigration : IEntityTypeConfiguration<Follow>
     {
         builder.HasKey(f => new { f.FollowerId, f.FollowedId });
 
+
         builder.HasOne(f => f.Follower)
             .WithMany(u => u.Following)
             .HasForeignKey(f => f.FollowerId)

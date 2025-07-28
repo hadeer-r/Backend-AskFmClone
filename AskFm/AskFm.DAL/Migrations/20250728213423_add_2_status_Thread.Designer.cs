@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AskFm.DLL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250726000117_Initial Migrations")]
-    partial class InitialMigrations
+    [Migration("20250728213423_add_2_status_Thread")]
+    partial class add_2_status_Thread
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -93,6 +93,9 @@ namespace AskFm.DLL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.HasKey("FollowerId", "FollowedId");
 
                     b.HasIndex("FollowedId");
@@ -122,7 +125,7 @@ namespace AskFm.DLL.Migrations
 
                     b.Property<string>("jsonContent")
                         .IsRequired()
-                        .HasColumnType("JSON");
+                        .HasColumnType("NVARCHAR");
 
                     b.HasKey("Id");
 
