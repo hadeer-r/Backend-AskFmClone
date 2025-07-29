@@ -1,4 +1,4 @@
-namespace AskFm.DAL.Moodels;
+namespace AskFm.DAL.Models;
 
 public class User
 {
@@ -11,7 +11,7 @@ public class User
     public string AvatarPath { get; set; }
     
     public int FollowersCount { get; set; }
-    public int FolloweingCount { get; set; }
+    public int FollowingCount { get; set; }
     
     public DateTime CreatedAt { get; set; }
     public DateTime LastSeen { get; set; }
@@ -21,7 +21,9 @@ public class User
     public virtual ICollection<Comment>? Comments { get; set; }
     public virtual ICollection<Follow>? Followers { get; set; }
     public virtual ICollection<Follow>? Following { get; set; }
-    public virtual ICollection<ThreadLike>? QuestionLikes { get; set; }
+    public virtual ICollection<ThreadLike>? ThreadLikes { get; set; }
     public virtual ICollection<CommentLike>? CommentLikes { get; set; }
     public virtual ICollection<Notification>? Notifications { get; set; }
+    public virtual ICollection<SavedThreads>? SavedThreads { get; set; }
+    
 }

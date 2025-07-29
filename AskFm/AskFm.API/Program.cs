@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using AskFm.DAL;
-
+using DotNetEnv;
 namespace AskFm.API;
 
 public class Program
@@ -15,8 +15,14 @@ public class Program
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
+        Env.Load();
+        string ConnectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+        if (ConnectionString is null)
+        {
+            throw new Exception("Connection string is null");
+        }
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(ConnectionString));
 
 
         var app = builder.Build();

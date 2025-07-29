@@ -1,4 +1,4 @@
-using AskFm.DAL.Moodels;
+using AskFm.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,6 +22,6 @@ public class CommentLikeConfigration : IEntityTypeConfiguration<CommentLike>
         builder.HasOne(cl => cl.Comment)
             .WithMany(c => c.CommentLikes)
             .HasForeignKey(cl => cl.CommentId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

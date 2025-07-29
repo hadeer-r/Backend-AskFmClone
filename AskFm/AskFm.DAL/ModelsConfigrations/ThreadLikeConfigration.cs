@@ -1,4 +1,4 @@
-using AskFm.DAL.Moodels;
+using AskFm.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,13 +15,13 @@ public class ThreadLikeConfigration : IEntityTypeConfiguration<ThreadLike>
             .IsRequired();
 
         builder.HasOne(tl => tl.User)
-            .WithMany(u => u.QuestionLikes)
+            .WithMany(u => u.ThreadLikes)
             .HasForeignKey(tl => tl.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(tl => tl.Thread)
             .WithMany(t => t.ThreadLikes)
             .HasForeignKey(tl => tl.ThreadId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

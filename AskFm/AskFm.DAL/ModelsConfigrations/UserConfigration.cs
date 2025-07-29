@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace AskFm.DAL.Moodels;
+namespace AskFm.DAL.Models;
 
 public class UserConfigration : IEntityTypeConfiguration<User>
 {
@@ -26,7 +26,6 @@ public class UserConfigration : IEntityTypeConfiguration<User>
         builder.Property(x => x.Email)
             .HasMaxLength(255)
             .IsRequired();
-
 
     }
 }

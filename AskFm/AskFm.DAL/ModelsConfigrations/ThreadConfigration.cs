@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Thread = AskFm.DAL.Moodels.Thread;
+using Thread = AskFm.DAL.Models.Thread;
 
 namespace AskFm.DAL.ModelsConfigrations;
 
@@ -29,16 +29,17 @@ public class ThreadConfigration : IEntityTypeConfiguration<Thread>
         builder.Property(t => t.Status)
             .HasConversion<string>()
             .IsRequired();
-
-        builder.HasOne(t => t.Asker)
-            .WithMany(u => u.AskedThreads)
-            .HasForeignKey(t => t.AskerId)
-            .OnDelete(DeleteBehavior.SetNull);
-
         builder.HasOne(t => t.Asked)
             .WithMany(u => u.ReceivedThreads)
             .HasForeignKey(t => t.AskedId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.HasOne(t => t.Asker)
+            .WithMany(u => u.AskedThreads)
+            .HasForeignKey(t => t.AskerId)
+            .OnDelete(DeleteBehavior.ClientSetNull);
+
+
 
 
     }

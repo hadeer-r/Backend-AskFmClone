@@ -1,4 +1,4 @@
-namespace AskFm.DAL.Moodels;
+namespace AskFm.DAL.Models;
 
 public class Comment
 {
@@ -7,7 +7,7 @@ public class Comment
     public DateTime CreatedAt { get; set; }
     public int LikeCount { get; set; }
 
-    public int UserId { get; set; }
+    public int? UserId { get; set; }
     public virtual User? User { get; set; }
 
     public int ThreadId { get; set; }
