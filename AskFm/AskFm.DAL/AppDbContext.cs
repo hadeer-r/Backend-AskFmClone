@@ -1,6 +1,6 @@
-using AskFm.DAL.Moodels;
+using AskFm.DAL.Models;
 using Microsoft.EntityFrameworkCore;
-using Thread = AskFm.DAL.Moodels.Thread;
+using Thread = AskFm.DAL.Models.Thread;
 
 namespace AskFm.DAL;
 

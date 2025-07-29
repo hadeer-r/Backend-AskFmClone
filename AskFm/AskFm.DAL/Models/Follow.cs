@@ -1,4 +1,4 @@
-namespace AskFm.DAL.Moodels;
+namespace AskFm.DAL.Models;
 
 public class Follow
 {

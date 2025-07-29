@@ -1,4 +1,4 @@
-using AskFm.DAL.Moodels;
+using AskFm.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

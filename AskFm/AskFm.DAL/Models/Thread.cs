@@ -1,5 +1,5 @@
 using AskFm.DAL.Enums;
-namespace AskFm.DAL.Moodels;
+namespace AskFm.DAL.Models;
 
 public class Thread
 {

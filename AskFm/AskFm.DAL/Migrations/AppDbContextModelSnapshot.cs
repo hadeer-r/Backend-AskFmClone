@@ -22,7 +22,7 @@ namespace AskFm.DAL.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Comment", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Comment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -61,7 +61,7 @@ namespace AskFm.DAL.Migrations
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.CommentLike", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.CommentLike", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -79,7 +79,7 @@ namespace AskFm.DAL.Migrations
                     b.ToTable("CommentLikes");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Follow", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Follow", b =>
                 {
                     b.Property<int>("FollowerId")
                         .HasColumnType("int");
@@ -100,7 +100,7 @@ namespace AskFm.DAL.Migrations
                     b.ToTable("Follows");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Notification", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -131,7 +131,7 @@ namespace AskFm.DAL.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.SavedThreads", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.SavedThreads", b =>
                 {
                     b.Property<int>("SavedThreadId")
                         .HasColumnType("int");
@@ -146,7 +146,7 @@ namespace AskFm.DAL.Migrations
                     b.ToTable("SavedThreads");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Thread", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Thread", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -189,7 +189,7 @@ namespace AskFm.DAL.Migrations
                     b.ToTable("Thread", (string)null);
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.ThreadLike", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.ThreadLike", b =>
                 {
                     b.Property<int>("ThreadId")
                         .HasColumnType("int");
@@ -207,7 +207,7 @@ namespace AskFm.DAL.Migrations
                     b.ToTable("ThreadLikes");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.User", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -263,19 +263,19 @@ namespace AskFm.DAL.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Comment", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Comment", b =>
                 {
-                    b.HasOne("AskFm.DAL.Moodels.Comment", "ParentComment")
+                    b.HasOne("AskFm.DAL.Models.Comment", "ParentComment")
                         .WithMany("Replies")
                         .HasForeignKey("ParentCommentId");
 
-                    b.HasOne("AskFm.DAL.Moodels.Thread", "Thread")
+                    b.HasOne("AskFm.DAL.Models.Thread", "Thread")
                         .WithMany("Comments")
                         .HasForeignKey("ThreadId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AskFm.DAL.Moodels.User", "User")
+                    b.HasOne("AskFm.DAL.Models.User", "User")
                         .WithMany("Comments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction);
@@ -287,15 +287,15 @@ namespace AskFm.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.CommentLike", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.CommentLike", b =>
                 {
-                    b.HasOne("AskFm.DAL.Moodels.Comment", "Comment")
+                    b.HasOne("AskFm.DAL.Models.Comment", "Comment")
                         .WithMany("CommentLikes")
                         .HasForeignKey("CommentId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("AskFm.DAL.Moodels.User", "User")
+                    b.HasOne("AskFm.DAL.Models.User", "User")
                         .WithMany("CommentLikes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -306,15 +306,15 @@ namespace AskFm.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Follow", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Follow", b =>
                 {
-                    b.HasOne("AskFm.DAL.Moodels.User", "Followed")
+                    b.HasOne("AskFm.DAL.Models.User", "Followed")
                         .WithMany("Followers")
                         .HasForeignKey("FollowedId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("AskFm.DAL.Moodels.User", "Follower")
+                    b.HasOne("AskFm.DAL.Models.User", "Follower")
                         .WithMany("Following")
                         .HasForeignKey("FollowerId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -325,9 +325,9 @@ namespace AskFm.DAL.Migrations
                     b.Navigation("Follower");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Notification", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Notification", b =>
                 {
-                    b.HasOne("AskFm.DAL.Moodels.User", "User")
+                    b.HasOne("AskFm.DAL.Models.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -336,15 +336,15 @@ namespace AskFm.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.SavedThreads", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.SavedThreads", b =>
                 {
-                    b.HasOne("AskFm.DAL.Moodels.Thread", "Thread")
+                    b.HasOne("AskFm.DAL.Models.Thread", "Thread")
                         .WithMany("SavedThreads")
                         .HasForeignKey("SavedThreadId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("AskFm.DAL.Moodels.User", "User")
+                    b.HasOne("AskFm.DAL.Models.User", "User")
                         .WithMany("SavedThreads")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -355,15 +355,15 @@ namespace AskFm.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Thread", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Thread", b =>
                 {
-                    b.HasOne("AskFm.DAL.Moodels.User", "Asked")
+                    b.HasOne("AskFm.DAL.Models.User", "Asked")
                         .WithMany("ReceivedThreads")
                         .HasForeignKey("AskedId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AskFm.DAL.Moodels.User", "Asker")
+                    b.HasOne("AskFm.DAL.Models.User", "Asker")
                         .WithMany("AskedThreads")
                         .HasForeignKey("AskerId");
 
@@ -372,15 +372,15 @@ namespace AskFm.DAL.Migrations
                     b.Navigation("Asker");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.ThreadLike", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.ThreadLike", b =>
                 {
-                    b.HasOne("AskFm.DAL.Moodels.Thread", "Thread")
+                    b.HasOne("AskFm.DAL.Models.Thread", "Thread")
                         .WithMany("ThreadLikes")
                         .HasForeignKey("ThreadId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("AskFm.DAL.Moodels.User", "User")
+                    b.HasOne("AskFm.DAL.Models.User", "User")
                         .WithMany("ThreadLikes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -391,14 +391,14 @@ namespace AskFm.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Comment", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Comment", b =>
                 {
                     b.Navigation("CommentLikes");
 
                     b.Navigation("Replies");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.Thread", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.Thread", b =>
                 {
                     b.Navigation("Comments");
 
@@ -407,7 +407,7 @@ namespace AskFm.DAL.Migrations
                     b.Navigation("ThreadLikes");
                 });
 
-            modelBuilder.Entity("AskFm.DAL.Moodels.User", b =>
+            modelBuilder.Entity("AskFm.DAL.Models.User", b =>
                 {
                     b.Navigation("AskedThreads");
 

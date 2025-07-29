@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Thread = AskFm.DAL.Moodels.Thread;
+using Thread = AskFm.DAL.Models.Thread;
 
 namespace AskFm.DAL.ModelsConfigrations;
 
