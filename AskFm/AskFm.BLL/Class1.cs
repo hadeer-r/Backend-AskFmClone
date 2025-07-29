@@ -1,7 +1,5 @@
-﻿namespace AskFm.BLL
-{
-    public class Class1
-    {
+﻿namespace AskFm.BLL;
 
-    }
+public class Class1
+{
 }

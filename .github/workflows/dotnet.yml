@@ -1,0 +1,48 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.x'
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+  
+    - name: Show file tree for debug
+      run: |
+        echo "Listing repo structure:"
+        find . -type f
+        echo "making ls -a"
+        ls -a
+      
+    - name: Restore dependencies
+      run: dotnet restore ./AskFm/AskFm.sln
+
+    - name: Build
+      run: dotnet build ./AskFm/AskFm.sln --no-restore --configuration Release
+      
+    - name: Build test projects
+      run: |
+        dotnet build ./AskFm/Tests/Tests.csproj --configuration Release
+
+    - name: Run Tests
+      run:  dotnet test ./AskFm/Tests/Tests.csproj --no-build --configuration Release --verbosity normal
