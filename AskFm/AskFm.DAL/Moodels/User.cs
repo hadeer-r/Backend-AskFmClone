@@ -11,7 +11,7 @@ public class User
     public string AvatarPath { get; set; }
     
     public int FollowersCount { get; set; }
-    public int FolloweingCount { get; set; }
+    public int FollowingCount { get; set; }
     
     public DateTime CreatedAt { get; set; }
     public DateTime LastSeen { get; set; }

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AskFm.DLL.Migrations
+namespace AskFm.DAL.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration

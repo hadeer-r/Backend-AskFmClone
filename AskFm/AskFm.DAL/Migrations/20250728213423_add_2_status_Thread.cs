@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace AskFm.DLL.Migrations
+namespace AskFm.DAL.Migrations
 {
     /// <inheritdoc />
     public partial class add_2_status_Thread : Migration

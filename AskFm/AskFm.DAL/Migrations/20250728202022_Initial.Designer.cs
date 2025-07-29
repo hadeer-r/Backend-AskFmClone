@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace AskFm.DLL.Migrations
+namespace AskFm.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20250728202022_Initial")]

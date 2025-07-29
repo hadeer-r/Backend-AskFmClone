@@ -4,6 +4,7 @@ using AskFm.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AskFm.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250729175124_Typo_Column")]
+    partial class Typo_Column
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,13 +136,13 @@ namespace AskFm.DAL.Migrations
 
             modelBuilder.Entity("AskFm.DAL.Moodels.SavedThreads", b =>
                 {
-                    b.Property<int>("SavedThreadId")
+                    b.Property<int>("ThreadId")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("SavedThreadId", "UserId");
+                    b.HasKey("ThreadId", "UserId");
 
                     b.HasIndex("UserId");
 
@@ -340,7 +343,7 @@ namespace AskFm.DAL.Migrations
                 {
                     b.HasOne("AskFm.DAL.Moodels.Thread", "Thread")
                         .WithMany("SavedThreads")
-                        .HasForeignKey("SavedThreadId")
+                        .HasForeignKey("ThreadId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
