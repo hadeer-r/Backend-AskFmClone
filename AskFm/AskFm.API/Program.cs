@@ -17,7 +17,10 @@ public class Program
 
         Env.Load();
         string ConnectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
-
+        if (ConnectionString is null)
+        {
+            throw new Exception("Connection string is null");
+        }
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(ConnectionString));
 
