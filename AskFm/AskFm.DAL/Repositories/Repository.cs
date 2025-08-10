@@ -39,9 +39,9 @@ public class Repository<T>  : IRepository<T> where T : class
         return query.Where(predicate);
     }
 
-    public async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> predicate = null, string[] includes = null)
+    public async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> predicate, string[] includes = null)
     {
-        IQueryable<T> query = _context.Set<T>();
+        IQueryable<T> query = _dbSet;
 
         if (includes != null)
             foreach (var include in includes)
