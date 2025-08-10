@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices.JavaScript;
+using Microsoft.AspNetCore.Identity;
 
 namespace AskFm.DAL.Models;
 
@@ -10,7 +11,7 @@ public class Comment : ITrackable
     public int LikeCount { get; set; }
 
     public int? UserId { get; set; }
-    public virtual User? User { get; set; }
+    public virtual ApplicationUser? User { get; set; }
 
     public int ThreadId { get; set; }
     public virtual Thread? Thread { get; set; }

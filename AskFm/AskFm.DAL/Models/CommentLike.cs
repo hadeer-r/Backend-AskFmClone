@@ -7,7 +7,7 @@ public class CommentLike : ITrackable
     public int CommentId { get; set; }
     public virtual Comment? Comment { get; set; }
     public int UserId { get; set; }
-    public virtual User? User { get; set; }
+    public virtual ApplicationUser? User { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime DeletedAt { get; set; }

@@ -12,10 +12,10 @@ public class Thread : ITrackable
     public bool isAnonymous { get; set; }
     public DateTime CreatedAt { get; set; }
     public int? AskerId { get; set; }
-    public virtual User? Asker { get; set; }
+    public virtual ApplicationUser? Asker { get; set; }
 
     public int AskedId { get; set; }
-    public virtual User? Asked { get; set; }
+    public virtual ApplicationUser? Asked { get; set; }
 
     public virtual ICollection<Comment>? Comments { get; set; }
     public virtual ICollection<ThreadLike>? ThreadLikes { get; set; }

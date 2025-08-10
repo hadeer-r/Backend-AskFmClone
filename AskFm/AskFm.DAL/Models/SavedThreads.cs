@@ -8,7 +8,7 @@ public class SavedThreads : ITrackable
     public int UserId { get; set; }
     
     public virtual Thread? Thread { get; set; }
-    public virtual User? User { get; set; }
+    public virtual ApplicationUser? User { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime DeletedAt { get; set; }
 }

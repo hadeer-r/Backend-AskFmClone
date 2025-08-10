@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using AskFm.DAL;
+using AskFm.DAL.Models;
 using DotNetEnv;
 namespace AskFm.API;
+
 
 public class Program
 {
@@ -23,6 +26,10 @@ public class Program
         }
         builder.Services.AddDbContext<AppDbContext>(options =>  
             options.UseSqlServer(ConnectionString));
+        
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
 
 
         var app = builder.Build();

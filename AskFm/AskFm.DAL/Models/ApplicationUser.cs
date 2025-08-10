@@ -1,14 +1,12 @@
 using System.Runtime.InteropServices.JavaScript;
+using Microsoft.AspNetCore.Identity;
 
 namespace AskFm.DAL.Models;
 
-public class User : ITrackable
+public class ApplicationUser : IdentityUser<int>
 {
-    public int Id { get; set; }
     public string Name { get; set; }
-    public string Username { get; set; }
     public string Email { get; set; }
-    public string Password { get; set; }
     public string Bio { get; set; }
     public string AvatarPath { get; set; }
     
