@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using AskFm.DAL;
+using AskFm.DAL.Interfaces;
+using AskFm.DAL.Repositories;
 using DotNetEnv;
+using Microsoft.EntityFrameworkCore.Proxies;
 namespace AskFm.API;
 
 public class Program
@@ -22,7 +25,11 @@ public class Program
             throw new Exception("Connection string is null");
         }
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(ConnectionString));
+            options
+                .UseLazyLoadingProxies()
+                .UseSqlServer(ConnectionString));
+        
+        builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 
 
         var app = builder.Build();
