@@ -17,7 +17,7 @@ public class ThreadLikeConfigration : IEntityTypeConfiguration<ThreadLike>
         builder.HasOne(tl => tl.User)
             .WithMany(u => u.ThreadLikes)
             .HasForeignKey(tl => tl.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(tl => tl.Thread)
             .WithMany(t => t.ThreadLikes)

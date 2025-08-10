@@ -32,12 +32,12 @@ public class ThreadConfigration : IEntityTypeConfiguration<Thread>
         builder.HasOne(t => t.Asked)
             .WithMany(u => u.ReceivedThreads)
             .HasForeignKey(t => t.AskedId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
         
         builder.HasOne(t => t.Asker)
             .WithMany(u => u.AskedThreads)
             .HasForeignKey(t => t.AskerId)
-            .OnDelete(DeleteBehavior.ClientSetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
 
 
