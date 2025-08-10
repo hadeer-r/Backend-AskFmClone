@@ -23,5 +23,17 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes()
+                     .Where(t => typeof(ITrackable).IsAssignableFrom(t.ClrType)))
+        {
+            modelBuilder.Entity(entityType.ClrType).Property<DateTime>("DeletedAt")
+                .HasColumnType("DATETIME");
+
+            modelBuilder.Entity(entityType.ClrType).Property<bool>("IsDeleted")
+                .HasColumnType("BIT")
+                .HasDefaultValue(false);
+        }
+        
     }
 }

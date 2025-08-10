@@ -1,6 +1,8 @@
+using System.Runtime.InteropServices.JavaScript;
+
 namespace AskFm.DAL.Models;
 
-public class User
+public class User : ITrackable
 {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -25,5 +27,7 @@ public class User
     public virtual ICollection<CommentLike>? CommentLikes { get; set; }
     public virtual ICollection<Notification>? Notifications { get; set; }
     public virtual ICollection<SavedThreads>? SavedThreads { get; set; }
-    
+
+    public bool IsDeleted { get; set; }
+    public DateTime DeletedAt { get; set; }
 }

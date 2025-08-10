@@ -1,6 +1,8 @@
+using System.Runtime.InteropServices.JavaScript;
+
 namespace AskFm.DAL.Models;
 
-public class Follow
+public class Follow : ITrackable
 {
     public int FollowerId { get; set; }
     public virtual User? Follower { get; set; }
@@ -11,4 +13,6 @@ public class Follow
     
     // is this follow available
     public bool IsActive { get; set; } = true;
+    public bool IsDeleted { get; set; }
+    public DateTime DeletedAt { get; set; }
 }

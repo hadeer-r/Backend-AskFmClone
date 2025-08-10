@@ -38,6 +38,14 @@ namespace AskFm.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
 
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("DATETIME");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
+
                     b.Property<int>("LikeCount")
                         .HasColumnType("int");
 
@@ -72,6 +80,14 @@ namespace AskFm.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
 
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("DATETIME");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
+
                     b.HasKey("UserId", "CommentId");
 
                     b.HasIndex("CommentId");
@@ -90,8 +106,16 @@ namespace AskFm.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("DATETIME");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
 
                     b.HasKey("FollowerId", "FollowedId");
 
@@ -110,6 +134,14 @@ namespace AskFm.DAL.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("DATETIME");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
 
                     b.Property<int>("ResourceId")
                         .HasColumnType("int");
@@ -139,6 +171,14 @@ namespace AskFm.DAL.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("DATETIME");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
+
                     b.HasKey("SavedThreadId", "UserId");
 
                     b.HasIndex("UserId");
@@ -167,6 +207,14 @@ namespace AskFm.DAL.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("DATETIME");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("QuestionContent")
                         .IsRequired()
@@ -200,6 +248,14 @@ namespace AskFm.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
 
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("DATETIME");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
+
                     b.HasKey("ThreadId", "UserId");
 
                     b.HasIndex("UserId");
@@ -227,6 +283,9 @@ namespace AskFm.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("DATETIME");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -237,6 +296,11 @@ namespace AskFm.DAL.Migrations
 
                     b.Property<int>("FollowingCount")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTime>("LastSeen")
                         .HasColumnType("datetime2");

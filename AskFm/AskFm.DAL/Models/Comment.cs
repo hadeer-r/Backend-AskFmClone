@@ -1,6 +1,8 @@
+using System.Runtime.InteropServices.JavaScript;
+
 namespace AskFm.DAL.Models;
 
-public class Comment
+public class Comment : ITrackable
 {
     public int Id { get; set; }
     public string Content { get; set; }
@@ -18,4 +20,6 @@ public class Comment
 
     public virtual ICollection<Comment>? Replies { get; set; }
     public virtual ICollection<CommentLike>? CommentLikes { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime DeletedAt { get; set; }
 }
