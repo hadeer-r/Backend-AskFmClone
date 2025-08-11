@@ -14,7 +14,7 @@ public interface IUnitOfWork : IDisposable
     IRepository<Follow>  Follows { get; }
     IRepository<Notification>  Notifications { get; }
     
-    int Complete();
-    Task<int> CompleteAsync();
+    int Save();
+    Task<int> SaveAsync();
     
 }

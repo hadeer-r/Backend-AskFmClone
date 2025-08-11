@@ -66,7 +66,7 @@ public class Repository<T>  : IRepository<T> where T : class
             }
         }
         
-        return  query.SingleOrDefault(predicate);
+        return  query.FirstOrDefault(predicate);
     }
     
     public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate, string[] includes = null)

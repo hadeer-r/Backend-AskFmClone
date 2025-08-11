@@ -29,7 +29,7 @@ public class Program
                 .UseLazyLoadingProxies()
                 .UseSqlServer(ConnectionString));
         
-        builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
         var app = builder.Build();
