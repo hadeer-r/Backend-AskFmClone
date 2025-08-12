@@ -4,16 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskFm.DAL.Repositories;
 
-public class UserRepository : Repository<User>, IUserRepository
+public class UserRepository : Repository<ApplicationUser>, IApplicationUserRepository
 {
     public UserRepository(AppDbContext context) : base(context)
     {
     }
 
-    public async Task<User?> GetByUsernameAsync(string username)
+    public async Task<ApplicationUser?> GetByUsernameAsync(string username)
     {
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == username);
+            .FirstOrDefaultAsync(u => u.UserName == username);
     }
     
 }

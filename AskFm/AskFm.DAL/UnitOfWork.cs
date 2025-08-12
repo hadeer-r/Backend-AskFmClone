@@ -9,7 +9,7 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;
 
-    private IRepository<User> _users;
+    private IRepository<ApplicationUser> _users;
     private IRepository<Thread> _threads;
     private IRepository<SavedThreads> _savedThreads;
     private IRepository<ThreadLike> _threadLikes;
@@ -24,13 +24,13 @@ public class UnitOfWork : IUnitOfWork
     {
         _context = context;
     }
-    public IRepository<User> Users
+    public IRepository<ApplicationUser> Users
     {
         get
         {
             if (_users == null)
             {
-                _users = new Repository<User>(_context);
+                _users = new Repository<ApplicationUser>(_context);
             }
             return _users;
         }
