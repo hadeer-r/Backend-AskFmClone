@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace AskFm.DAL.Models;
 
-public class ApplicationUser : IdentityUser<int>
+public class ApplicationUser : IdentityUser<int>, ITrackable
 {
     public string Name { get; set; }
     public string Email { get; set; }
@@ -13,7 +13,6 @@ public class ApplicationUser : IdentityUser<int>
     public int FollowersCount { get; set; }
     public int FollowingCount { get; set; }
     
-    public DateTime CreatedAt { get; set; }
     public DateTime LastSeen { get; set; }
 
     public virtual ICollection<Thread>? AskedThreads { get; set; }
@@ -28,4 +27,6 @@ public class ApplicationUser : IdentityUser<int>
 
     public bool IsDeleted { get; set; }
     public DateTime DeletedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

@@ -14,10 +14,6 @@ public class CommentConfigration : IEntityTypeConfiguration<Comment>
             .IsRequired()
             .HasMaxLength(1000);
 
-        builder.Property(c => c.CreatedAt)
-            .HasColumnType("datetime")
-            .IsRequired();
-
 
         builder.HasOne(c => c.Thread)
             .WithMany(t => t.Comments)

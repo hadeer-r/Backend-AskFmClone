@@ -19,9 +19,6 @@ public class ThreadConfigration : IEntityTypeConfiguration<Thread>
         builder.Property(t => t.AnswerContent)
             .HasMaxLength(4000);
 
-        builder.Property(t => t.CreatedAt)
-            .HasColumnType("datetime")
-            .IsRequired();
 
         builder.Property(t => t.isAnonymous)
             .IsRequired();

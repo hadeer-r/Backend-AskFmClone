@@ -10,7 +10,6 @@ public class Thread : ITrackable
 
     public ThreadStatus Status { get; set; }
     public bool isAnonymous { get; set; }
-    public DateTime CreatedAt { get; set; }
     public int? AskerId { get; set; }
     public virtual ApplicationUser? Asker { get; set; }
 
@@ -22,4 +21,6 @@ public class Thread : ITrackable
     public virtual ICollection<SavedThreads>? SavedThreads { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime DeletedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

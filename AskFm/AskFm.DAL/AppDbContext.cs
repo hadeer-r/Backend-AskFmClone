@@ -30,7 +30,14 @@ public class AppDbContext : IdentityDbContext<ApplicationUser,IdentityRole<int>,
         foreach (var entityType in modelBuilder.Model.GetEntityTypes()
                      .Where(t => typeof(ITrackable).IsAssignableFrom(t.ClrType)))
         {
+            
             modelBuilder.Entity(entityType.ClrType).Property<DateTime>("DeletedAt")
+                .HasColumnType("DATETIME");
+
+            modelBuilder.Entity(entityType.ClrType).Property<DateTime>("UpdatedAt")
+                .HasColumnType("DATETIME");
+
+            modelBuilder.Entity(entityType.ClrType).Property<DateTime>("CreatedAt")
                 .HasColumnType("DATETIME");
 
             modelBuilder.Entity(entityType.ClrType).Property<bool>("IsDeleted")
