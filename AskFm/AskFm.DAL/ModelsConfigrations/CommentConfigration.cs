@@ -14,20 +14,16 @@ public class CommentConfigration : IEntityTypeConfiguration<Comment>
             .IsRequired()
             .HasMaxLength(1000);
 
-        builder.Property(c => c.CreatedAt)
-            .HasColumnType("datetime")
-            .IsRequired();
-
 
         builder.HasOne(c => c.Thread)
             .WithMany(t => t.Comments)
             .HasForeignKey(c => c.ThreadId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(c => c.ParentComment)
             .WithMany(c => c.Replies)
             .HasForeignKey(c => c.ParentCommentId)
-            .OnDelete(DeleteBehavior.ClientSetNull);
+            .OnDelete(DeleteBehavior.NoAction);
         
         
         builder.HasOne(c => c.User)

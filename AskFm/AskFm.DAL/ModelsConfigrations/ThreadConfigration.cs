@@ -19,9 +19,6 @@ public class ThreadConfigration : IEntityTypeConfiguration<Thread>
         builder.Property(t => t.AnswerContent)
             .HasMaxLength(4000);
 
-        builder.Property(t => t.CreatedAt)
-            .HasColumnType("datetime")
-            .IsRequired();
 
         builder.Property(t => t.isAnonymous)
             .IsRequired();
@@ -32,12 +29,12 @@ public class ThreadConfigration : IEntityTypeConfiguration<Thread>
         builder.HasOne(t => t.Asked)
             .WithMany(u => u.ReceivedThreads)
             .HasForeignKey(t => t.AskedId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
         
         builder.HasOne(t => t.Asker)
             .WithMany(u => u.AskedThreads)
             .HasForeignKey(t => t.AskerId)
-            .OnDelete(DeleteBehavior.ClientSetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
 
 

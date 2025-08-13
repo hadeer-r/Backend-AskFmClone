@@ -5,7 +5,7 @@ namespace AskFm.DAL.Interfaces;
 
 public interface IUnitOfWork : IDisposable
 {
-    IRepository<User> Users { get; }
+    IRepository<ApplicationUser> Users { get; }
     IRepository<Thread>  Threads { get; }
     IRepository<SavedThreads> SavedThreads { get; }
     IRepository<ThreadLike>  ThreadLikes { get; }

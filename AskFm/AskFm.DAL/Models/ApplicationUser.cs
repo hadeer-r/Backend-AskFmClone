@@ -1,19 +1,18 @@
+using System.Runtime.InteropServices.JavaScript;
+using Microsoft.AspNetCore.Identity;
+
 namespace AskFm.DAL.Models;
 
-public class User
+public class ApplicationUser : IdentityUser<int>, ITrackable
 {
-    public int Id { get; set; }
     public string Name { get; set; }
-    public string Username { get; set; }
     public string Email { get; set; }
-    public string Password { get; set; }
     public string Bio { get; set; }
     public string AvatarPath { get; set; }
     
     public int FollowersCount { get; set; }
     public int FollowingCount { get; set; }
     
-    public DateTime CreatedAt { get; set; }
     public DateTime LastSeen { get; set; }
 
     public virtual ICollection<Thread>? AskedThreads { get; set; }
@@ -25,5 +24,9 @@ public class User
     public virtual ICollection<CommentLike>? CommentLikes { get; set; }
     public virtual ICollection<Notification>? Notifications { get; set; }
     public virtual ICollection<SavedThreads>? SavedThreads { get; set; }
-    
+
+    public bool IsDeleted { get; set; }
+    public DateTime DeletedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

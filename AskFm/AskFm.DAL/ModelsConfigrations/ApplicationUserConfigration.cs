@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AskFm.DAL.Models;
 
-public class UserConfigration : IEntityTypeConfiguration<User>
+public class ApplicationUserConfigration : IEntityTypeConfiguration<ApplicationUser>
 {
-    public void Configure(EntityTypeBuilder<User> builder)
+    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.HasIndex(u => u.Username).IsUnique();
+        builder.HasIndex(u => u.UserName).IsUnique();
 
         builder.Property(u => u.Name)
             .HasMaxLength(50)
@@ -17,10 +17,9 @@ public class UserConfigration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Bio)
             .HasMaxLength(500);
         
-        builder.Property(x => x.Username).IsRequired();
+        builder.Property(x => x.UserName).IsRequired();
 
-        builder.Property(x => x.Password)
-            .HasMaxLength(225)
+        builder.Property(x => x.PasswordHash)
             .IsRequired();
 
         builder.Property(x => x.Email)

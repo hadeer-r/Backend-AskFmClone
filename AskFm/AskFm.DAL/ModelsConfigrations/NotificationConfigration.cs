@@ -15,14 +15,11 @@ public class NotificationConfigration : IEntityTypeConfiguration<Notification>
 
         builder.Property(n => n.isRead)
             .IsRequired();
-
-        builder.Property(n => n.CreatedAt)
-            .HasColumnType("datetime")
-            .IsRequired();
+        
 
         builder.HasOne(n => n.User)
             .WithMany(u => u.Notifications)
             .HasForeignKey(n => n.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
