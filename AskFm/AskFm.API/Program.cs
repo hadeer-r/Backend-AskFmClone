@@ -6,6 +6,8 @@ using AskFm.DAL.Interfaces;
 using AskFm.DAL.Repositories;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore.Proxies;
+using Microsoft.OpenApi.Models;
+
 namespace AskFm.API;
 
 
@@ -39,12 +41,19 @@ public class Program
 
         
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-
+        builder.Services.AddControllers();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+            
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment()) app.MapOpenApi();
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+            app.MapOpenApi();
+        }
 
         app.UseHttpsRedirection();
 
