@@ -6,6 +6,7 @@ using AskFm.DAL.Interfaces;
 using AskFm.DAL.Repositories;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore.Proxies;
+using AskFm.BLL.Hub;
 namespace AskFm.API;
 
 
@@ -41,6 +42,7 @@ public class Program
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
+        builder.Services.AddSignalR();
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -52,6 +54,8 @@ public class Program
 
 
         app.MapControllers();
+
+        app.MapHub<NotificationHub>("/notificationHub");
 
         app.Run();
     }
