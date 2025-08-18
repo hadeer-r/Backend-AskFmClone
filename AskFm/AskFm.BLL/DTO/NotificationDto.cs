@@ -1,3 +1,5 @@
+using AskFm.BLL.DTO;
+
 public class NotificationDto
 {
     public int Id { get; set; }
@@ -10,4 +12,6 @@ public class NotificationDto
 
     public int ResourceId { get; set; }
     public int UserId { get; set; }
+    public ActorDto? Actor { get; set; }
+
 }

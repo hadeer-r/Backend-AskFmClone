@@ -5,10 +5,12 @@ namespace AskFm.DAL.Models;
 
 public class Notification : ITrackable
 {
-    public NotificationStatus Type;
+    public NotificationStatus Type { get; set; }
     public int Id { get; set; }
     public int UserId { get; set; }
     public virtual ApplicationUser? User { get; set; }
+    public int? ActorUserId { get; set; }
+    public virtual ApplicationUser? ActorUser { get; set; }
     public bool isRead { get; set; }
     
     public int ResourceId { get; set; }
