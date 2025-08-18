@@ -1,10 +1,11 @@
 using System.Runtime.InteropServices.JavaScript;
+using AskFm.DAL.Enums;
 
 namespace AskFm.DAL.Models;
 
 public class Notification : ITrackable
 {
-    public GCNotificationStatus Type;
+    public NotificationStatus Type;
     public int Id { get; set; }
     public int UserId { get; set; }
     public virtual ApplicationUser? User { get; set; }
