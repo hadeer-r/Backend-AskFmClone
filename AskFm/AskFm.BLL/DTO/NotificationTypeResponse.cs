@@ -1,8 +1,8 @@
 namespace AskFm.BLL.DTO;
 
-public class NotificationCategoryResponse
+public class NotificationTypeResponse
 {
-    public string Category { get; set; }
+    public string Type { get; set; }
     public List<NotificationDto> Notifications { get; set; }
     public PaginationDto Pagination { get; set; }
 }

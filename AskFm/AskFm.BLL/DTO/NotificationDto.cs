@@ -13,5 +13,7 @@ public class NotificationDto
     public int ResourceId { get; set; }
     public int UserId { get; set; }
     public ActorDto? Actor { get; set; }
+    public PaginationDto Pagination { get; set; }
+
 
 }
