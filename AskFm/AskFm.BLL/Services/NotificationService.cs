@@ -1,16 +1,21 @@
 using AskFm.BLL.DTO;
+using AskFm.BLL.Hub;
 using AskFm.BLL.Services;
 using AskFm.DAL.Enums;
 using AskFm.DAL.Interfaces;
 using AskFm.DAL.Models;
+using Microsoft.AspNetCore.SignalR;
 
 public class NotificationService : INotificationService
 {
     private readonly INotificationRepository _notificationRepository;
+    private readonly IHubContext<NotificationHub> _hubContext;
 
-    public NotificationService(INotificationRepository notificationRepository)
+
+    public NotificationService(INotificationRepository notificationRepository, IHubContext<NotificationHub> hubContext)
     {
         _notificationRepository = notificationRepository;
+        _hubContext = hubContext;
     }
 
     public async Task<List<NotificationDto>> GetUserNotifications(int userId, int pageNumber = 1, int pageSize = 10)
@@ -115,5 +120,19 @@ public class NotificationService : INotificationService
         };
 
         await _notificationRepository.AddNotification(notification);
+        
+        var notificationDto = new NotificationDto
+        {
+            Id = notification.Id,
+            UserId = notification.UserId,
+            Type = notification.Type.ToString(),
+            ResourceId = notification.ResourceId,
+            Message = notification.jsonContent,
+            IsRead = notification.isRead,
+            CreatedAt = notification.CreatedAt
+        };
+
+        await _hubContext.Clients.Group($"user_{userId}")
+            .SendAsync("ReceiveNotification", notificationDto);
     }
 }
