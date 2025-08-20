@@ -7,6 +7,8 @@ using AskFm.DAL.Repositories;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore.Proxies;
 using AskFm.BLL.Hub;
+using AskFm.BLL.Services;
+
 namespace AskFm.API;
 
 
@@ -40,6 +42,8 @@ public class Program
 
         
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+        builder.Services.AddScoped<INotificationService, NotificationService>();
 
 
         builder.Services.AddSignalR();
