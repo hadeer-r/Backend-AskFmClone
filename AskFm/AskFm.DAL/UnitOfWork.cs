@@ -1,7 +1,7 @@
 using AskFm.DAL.Interfaces;
 using AskFm.DAL.Models;
 using AskFm.DAL.Repositories;
-using Thread = System.Threading.Thread;
+using Thread = AskFm.DAL.Models.Thread;
 
 namespace AskFm.DAL;
 
