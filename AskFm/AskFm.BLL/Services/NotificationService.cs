@@ -9,12 +9,14 @@ using Microsoft.AspNetCore.SignalR;
 public class NotificationService : INotificationService
 {
     private readonly INotificationRepository _notificationRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IHubContext<NotificationHub> _hubContext;
 
 
-    public NotificationService(INotificationRepository notificationRepository, IHubContext<NotificationHub> hubContext)
+    public NotificationService(INotificationRepository notificationRepository, IUnitOfWork unitOfWork, IHubContext<NotificationHub> hubContext)
     {
         _notificationRepository = notificationRepository;
+        _unitOfWork = unitOfWork;
         _hubContext = hubContext;
     }
 
@@ -102,13 +104,28 @@ public class NotificationService : INotificationService
     }
     public async Task<string> MarkNotificationAsRead(int notificationId)
     {
-        await _notificationRepository.MarkNotificationAsRead(notificationId);
+        var notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
+        if (notification == null)
+            throw new InvalidOperationException($"Notification with ID {notificationId} not found.");
+
+        notification.isRead = true;
+        _unitOfWork.Notifications.Update(notification);
+        await _unitOfWork.SaveAsync();
+        
         return "notification has been read";
     }
 
     public async Task<string> MarkAllNotificationsAsRead(int userId)
     {
-        await _notificationRepository.MarkAllNotificationsAsRead(userId);
+        var unreadNotifications = await _unitOfWork.Notifications.FindAllAsync(n => n.UserId == userId && !n.isRead);
+        
+        foreach (var notification in unreadNotifications)
+        {
+            notification.isRead = true;
+            _unitOfWork.Notifications.Update(notification);
+        }
+        
+        await _unitOfWork.SaveAsync();
         return "All notifications marked as read";
     }
 
@@ -125,7 +142,8 @@ public class NotificationService : INotificationService
             UpdatedAt = DateTime.UtcNow
         };
 
-        await _notificationRepository.AddNotification(notification);
+        await _unitOfWork.Notifications.AddAsync(notification);
+        await _unitOfWork.SaveAsync();
         
         var notificationDto = new NotificationDto
         {

@@ -1,7 +1,6 @@
 using AskFm.DAL.Interfaces;
 using AskFm.DAL.Models;
 using AskFm.DAL.Repositories;
-using Thread = System.Threading.Thread;
 
 namespace AskFm.DAL;
 
@@ -10,7 +9,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly AppDbContext _context;
 
     private IRepository<ApplicationUser> _users;
-    private IRepository<Thread> _threads;
+    private IRepository<Models.Thread> _threads;
     private IRepository<SavedThreads> _savedThreads;
     private IRepository<ThreadLike> _threadLikes;
     private IRepository<Comment> _comments;
@@ -36,12 +35,12 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    public IRepository<Thread> Threads {
+    public IRepository<Models.Thread> Threads {
         get
         {
             if (_threads == null)
             {
-                _threads = new Repository<Thread>(_context);
+                _threads = new Repository<Models.Thread>(_context);
             }
             return _threads;
         }
@@ -119,6 +118,7 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    IRepository<Models.Thread> IUnitOfWork.Threads => throw new NotImplementedException();
 
     public void Dispose()
     {
