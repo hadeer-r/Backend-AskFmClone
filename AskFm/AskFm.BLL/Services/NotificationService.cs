@@ -37,8 +37,8 @@ public class NotificationService : INotificationService
                 UserId = notification.UserId,
                 Type = notification.Type.ToString(),
                 ResourceId = notification.ResourceId,
-                Message = notification.jsonContent,
-                IsRead = notification.isRead,
+                Message = notification.Message,
+                IsRead = notification.IsRead,
                 CreatedAt = notification.CreatedAt,
                 Actor = actorUser == null ? null : new ActorDto
                 {
@@ -80,8 +80,8 @@ public class NotificationService : INotificationService
                 UserId = notification.UserId,
                 Type = notification.Type.ToString(),
                 ResourceId = notification.ResourceId,
-                Message = notification.jsonContent,
-                IsRead = notification.isRead,
+                Message = notification.Message,
+                IsRead = notification.IsRead,
                 CreatedAt = notification.CreatedAt,
                 Actor = actorUser == null ? null : new ActorDto
                 {
@@ -108,7 +108,7 @@ public class NotificationService : INotificationService
         if (notification == null)
             throw new InvalidOperationException($"Notification with ID {notificationId} not found.");
 
-        notification.isRead = true;
+        notification.IsRead = true;
         _unitOfWork.Notifications.Update(notification);
         await _unitOfWork.SaveAsync();
         
@@ -117,11 +117,11 @@ public class NotificationService : INotificationService
 
     public async Task<string> MarkAllNotificationsAsRead(int userId)
     {
-        var unreadNotifications = await _unitOfWork.Notifications.FindAllAsync(n => n.UserId == userId && !n.isRead);
+        var unreadNotifications = await _unitOfWork.Notifications.FindAllAsync(n => n.UserId == userId && !n.IsRead);
         
         foreach (var notification in unreadNotifications)
         {
-            notification.isRead = true;
+            notification.IsRead = true;
             _unitOfWork.Notifications.Update(notification);
         }
         
@@ -136,8 +136,8 @@ public class NotificationService : INotificationService
             UserId = userId,
             Type = type,
             ResourceId = resourceId,
-            jsonContent = message,
-            isRead = false,
+            Message = message,
+            IsRead = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -151,8 +151,8 @@ public class NotificationService : INotificationService
             UserId = notification.UserId,
             Type = notification.Type.ToString(),
             ResourceId = notification.ResourceId,
-            Message = notification.jsonContent,
-            IsRead = notification.isRead,
+            Message = notification.Message,
+            IsRead = notification.IsRead,
             CreatedAt = notification.CreatedAt
         };
 

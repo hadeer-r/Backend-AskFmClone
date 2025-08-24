@@ -10,10 +10,10 @@ public class NotificationConfigration : IEntityTypeConfiguration<Notification>
     {
         builder.HasKey(n => n.Id);
 
-        builder.Property(n => n.jsonContent)
+        builder.Property(n => n.Message)
             .HasColumnType("NVARCHAR");
 
-        builder.Property(n => n.isRead)
+        builder.Property(n => n.IsRead)
             .IsRequired();
         
 
