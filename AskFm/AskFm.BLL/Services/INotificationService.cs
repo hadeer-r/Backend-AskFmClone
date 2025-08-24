@@ -9,5 +9,5 @@ public interface INotificationService
     Task<NotificationTypeResponse> GetNotificationsByType(int userId, string category, int pageNumber = 1, int pageSize = 10);
     Task<string> MarkNotificationAsRead(int notificationId);
     Task<string> MarkAllNotificationsAsRead(int userId);
-    Task CreateNotification(int userId, int? actorUserId, NotificationStatus type, int resourceId, string message);
+    Task CreateNotification(int userId, NotificationStatus type, int resourceId, string message);
 }

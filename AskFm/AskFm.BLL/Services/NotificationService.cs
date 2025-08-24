@@ -21,61 +21,73 @@ public class NotificationService : INotificationService
     public async Task<List<NotificationDto>> GetUserNotifications(int userId, int pageNumber = 1, int pageSize = 10)
     {
         var (notifications, totalCount) = await _notificationRepository.GetAllNotifications(userId, pageNumber, pageSize);
-        
+
         var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
-        var notificationDtos = notifications.Select(notification => new NotificationDto
-        {
-            Id = notification.Id,
-            UserId = notification.UserId,
-            Type = notification.Type.ToString(),
-            ResourceId = notification.ResourceId,
-            Message = notification.jsonContent,
-            IsRead = notification.isRead,
-            CreatedAt = notification.CreatedAt,
-            Actor = new ActorDto
-            {
-                Id = notification.ActorUser?.Id ?? 0,
-                Username = notification.ActorUser?.UserName ?? "Unknown",
-                AvatarPath = notification.ActorUser?.AvatarPath ?? string.Empty
-            },
-            Pagination = new PaginationDto
-            {
-                CurrentPage = pageNumber,
-                TotalPages = totalPages,
-                TotalCount = totalCount,
-                HasNext = pageNumber < totalPages,
-                HasPrevious = pageNumber > 1
-            }
-        }).ToList();
+        var notificationDtos = new List<NotificationDto>();
 
+        foreach (var notification in notifications)
+        {
+            var actorUser = await _notificationRepository.GetActorUserByResourceId(notification.ResourceId, notification.Type);
+            notificationDtos.Add(new NotificationDto
+            {
+                Id = notification.Id,
+                UserId = notification.UserId,
+                Type = notification.Type.ToString(),
+                ResourceId = notification.ResourceId,
+                Message = notification.jsonContent,
+                IsRead = notification.isRead,
+                CreatedAt = notification.CreatedAt,
+                Actor = actorUser == null ? null : new ActorDto
+                {
+                    Id = actorUser.Id,
+                    Username = actorUser?.UserName ?? "Unknown",
+                    AvatarPath = actorUser?.AvatarPath ?? String.Empty
+                },
+                Pagination = new PaginationDto
+                {
+                    CurrentPage = pageNumber,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount,
+                    HasNext = pageNumber < totalPages,
+                    HasPrevious = pageNumber > 1
+                }
+            });
+        }
         return notificationDtos;
     }
 
     public async Task<NotificationTypeResponse> GetNotificationsByType(int userId, string category, int pageNumber = 1, int pageSize = 10)
     {
+        // first we have to convert category to upper case and match it with enum
         if (!Enum.TryParse<NotificationStatus>(category, true, out var notificationType))
             throw new ArgumentException($"Invalid notification category: {category}");
 
         var (notifications, totalCount) = await _notificationRepository.GetNotificationsByType(userId, notificationType, pageNumber, pageSize);
         
-        var notificationDtos = notifications.Select(notification => new NotificationDto
+        var notificationDtos = new List<NotificationDto>();
+
+        foreach (var notification in notifications)
         {
-            Id = notification.Id,
-            UserId = notification.UserId,
-            Type = notification.Type.ToString(),
-            ResourceId = notification.ResourceId,
-            Message = notification.jsonContent,
-            IsRead = notification.isRead,
-            CreatedAt = notification.CreatedAt,
-            Actor = new ActorDto
-            {
-                Id = notification.ActorUser?.Id ?? 0,
-                Username = notification.ActorUser?.UserName ?? "Unknown",
-                AvatarPath = notification.ActorUser?.AvatarPath ?? string.Empty
-            }
-        }).ToList();
-        
+            var actorUser = await _notificationRepository.GetActorUserByResourceId(notification.ResourceId, notification.Type);
+            notificationDtos.Add(new NotificationDto
+            { 
+                Id = notification.Id,
+                UserId = notification.UserId,
+                Type = notification.Type.ToString(),
+                ResourceId = notification.ResourceId,
+                Message = notification.jsonContent,
+                IsRead = notification.isRead,
+                CreatedAt = notification.CreatedAt,
+                Actor = actorUser == null ? null : new ActorDto
+                {
+                    Id = actorUser.Id,
+                    Username = actorUser?.UserName ?? "Unknown",
+                    AvatarPath = actorUser?.AvatarPath ?? String.Empty
+                }
+            });
+        }
+
         var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
         
         return new NotificationTypeResponse
@@ -105,12 +117,11 @@ public class NotificationService : INotificationService
         return "All notifications marked as read";
     }
 
-    public async Task CreateNotification(int userId, int? actorUserId, NotificationStatus type, int resourceId, string message)
+    public async Task CreateNotification(int userId, NotificationStatus type, int resourceId, string message)
     {
         var notification = new Notification
         {
             UserId = userId,
-            ActorUserId = actorUserId,
             Type = type,
             ResourceId = resourceId,
             jsonContent = message,

@@ -12,4 +12,5 @@ public interface INotificationRepository
     Task<(IEnumerable<Notification> notifications, int totalCount)> GetNotificationsByType(int userId, NotificationStatus status, int pageNumber, int pageSize);
     Task MarkNotificationAsRead(int notificationId);
     Task MarkAllNotificationsAsRead(int userId);
+    Task<ApplicationUser?> GetActorUserByResourceId(int resourceId, NotificationStatus type);
 }

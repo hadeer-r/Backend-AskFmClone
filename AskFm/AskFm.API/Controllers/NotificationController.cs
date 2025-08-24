@@ -76,21 +76,11 @@ namespace AskFm.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateNotification(
-            int userId,
-            int? actorUserId,
-            NotificationStatus type,
-            int resourceId,
-            string message)
+        public async Task<IActionResult> CreateNotification(int userId, NotificationStatus type, int resourceId, string message)
         {
             try
             {
-                await _notificationService.CreateNotification(
-                    userId, 
-                    actorUserId, 
-                    type, 
-                    resourceId, 
-                    message);
+                await _notificationService.CreateNotification(userId, type, resourceId, message);
 
                 return CreatedAtAction(nameof(GetUserNotifications), new { userId = userId }, new { message = "Notification created successfully" });
             }
