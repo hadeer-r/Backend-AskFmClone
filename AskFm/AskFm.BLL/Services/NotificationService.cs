@@ -57,21 +57,23 @@ public class NotificationService : INotificationService
         return notificationDtos;
     }
 
-    public async Task<NotificationTypeResponse> GetNotificationsByType(int userId, string category, int pageNumber = 1, int pageSize = 10)
+    public async Task<List<NotificationDto>> GetNotificationsByType(int userId, string category, int pageNumber = 1, int pageSize = 10)
     {
-        // first we have to convert category to upper case and match it with enum
-        if (!Enum.TryParse<NotificationStatus>(category, true, out var notificationType))
+        // Convert category to uppercase and match with enum
+        if (!Enum.TryParse<NotificationStatus>(category.ToUpper(), out var notificationType))
             throw new ArgumentException($"Invalid notification category: {category}");
 
         var (notifications, totalCount) = await _notificationRepository.GetNotificationsByType(userId, notificationType, pageNumber, pageSize);
-        
+
+        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
         var notificationDtos = new List<NotificationDto>();
 
         foreach (var notification in notifications)
         {
             var actorUser = await _notificationRepository.GetActorUserByResourceId(notification.ResourceId, notification.Type);
             notificationDtos.Add(new NotificationDto
-            { 
+            {
                 Id = notification.Id,
                 UserId = notification.UserId,
                 Type = notification.Type.ToString(),
@@ -84,27 +86,20 @@ public class NotificationService : INotificationService
                     Id = actorUser.Id,
                     Username = actorUser?.UserName ?? "Unknown",
                     AvatarPath = actorUser?.AvatarPath ?? String.Empty
+                },
+                Pagination = new PaginationDto
+                {
+                    CurrentPage = pageNumber,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount,
+                    HasNext = pageNumber < totalPages,
+                    HasPrevious = pageNumber > 1
                 }
             });
         }
 
-        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-        
-        return new NotificationTypeResponse
-        {
-            Type = category.ToUpper(),
-            Notifications = notificationDtos,
-            Pagination = new PaginationDto
-            {
-                CurrentPage = pageNumber,
-                TotalPages = totalPages,
-                TotalCount = totalCount,
-                HasNext = pageNumber < totalPages,
-                HasPrevious = pageNumber > 1
-            }
-        };
+        return notificationDtos;
     }
-
     public async Task<string> MarkNotificationAsRead(int notificationId)
     {
         await _notificationRepository.MarkNotificationAsRead(notificationId);
