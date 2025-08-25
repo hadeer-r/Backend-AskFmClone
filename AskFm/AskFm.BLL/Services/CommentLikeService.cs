@@ -93,6 +93,10 @@ public class CommentLikeService :  ICommentLikeService
 
                 
                 var user = await _unitOfWork.Users.GetByIdAsync(userId);
+                
+                if (user == null)
+                    throw new ArgumentException($"User with id {userId} not found");
+                
                 string userName = user.UserName;
                 
                 
