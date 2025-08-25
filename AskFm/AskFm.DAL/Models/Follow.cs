@@ -11,7 +11,7 @@ public class Follow : ITrackable
     public virtual ApplicationUser? Followed { get; set; }
     
     // is this follow available
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; }
     
     
     public bool IsDeleted { get; set; }

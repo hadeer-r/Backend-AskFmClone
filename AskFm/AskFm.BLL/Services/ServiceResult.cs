@@ -6,7 +6,7 @@ public class ServiceResult<T>
     public List<string>? Errors { get; set; }
     public T? Data { get; set; }
 
-    public static ServiceResult<T> Success(T data)
+    public static async Task<ServiceResult<T>> Success(T data)
     {
         return new ServiceResult<T>
         {
@@ -14,7 +14,7 @@ public class ServiceResult<T>
             Data = data
         };
     }
-    public static ServiceResult<T> Success()
+    public static async Task<ServiceResult<T>> Success()
     {
         return new ServiceResult<T>
         {
@@ -22,7 +22,7 @@ public class ServiceResult<T>
         };
     }
 
-    public static ServiceResult<T> Failure(List<string> errors)
+    public static async Task<ServiceResult<T>> Failure(List<string> errors)
     {
         return new ServiceResult<T>
         {

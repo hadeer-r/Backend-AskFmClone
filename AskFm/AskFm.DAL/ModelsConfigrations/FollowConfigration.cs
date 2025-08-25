@@ -20,5 +20,7 @@ public class FollowConfigration : IEntityTypeConfiguration<Follow>
             .WithMany(u => u.Followers)
             .HasForeignKey(f => f.FollowedId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Property(f => f.IsActive).HasColumnType("BIT").HasDefaultValue(1);
     }
 }

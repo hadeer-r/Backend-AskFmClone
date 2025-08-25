@@ -35,47 +35,64 @@ public class Program
         {
             throw new Exception("Connection string is null");
         }
-      
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddDbContext<AppDbContext>(options =>
             options
                 .UseLazyLoadingProxies()
                 .UseSqlServer(ConnectionString));
-      
-        
-
         
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        
 
         JwtOptions jwtOptions = new JwtOptions
         {
             Issuer = Environment.GetEnvironmentVariable("ISSUER"),
             Audience = Environment.GetEnvironmentVariable("AUDIENCE"),
             SigningKey = Environment.GetEnvironmentVariable("SIGNINGKEY"),
+            AccessExpiration = int.Parse(Environment.GetEnvironmentVariable("TOKEN_EXP")),
+            AccessRefreshTokenExpiration = int.Parse(Environment.GetEnvironmentVariable("REFRESH_TOKEN_EXP")),
         };
         if (jwtOptions == null)
         {
             throw new Exception("jwtOptions is null");
         }
+
+        builder.Services.Configure<JwtOptions>(Options =>
+        {
+            Options.Issuer = Environment.GetEnvironmentVariable("ISSUER");
+            Options.Audience = Environment.GetEnvironmentVariable("AUDIENCE");
+            Options.SigningKey = Environment.GetEnvironmentVariable("SIGNINGKEY");
+            Options.AccessExpiration = int.Parse(Environment.GetEnvironmentVariable("TOKEN_EXP"));
+            Options.AccessRefreshTokenExpiration = int.Parse(Environment.GetEnvironmentVariable("REFRESH_TOKEN_EXP"));
+        });
         
-        Console.WriteLine(jwtOptions.Issuer +  " " + jwtOptions.Audience +  " " + jwtOptions.SigningKey);
-        builder.Services.AddAuthentication()
-            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, Options =>
+        builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "Bearer";
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                
+            })
+            .AddJwtBearer( Options =>
             {
                 Options.TokenValidationParameters = new TokenValidationParameters
                 {
+                    ValidateLifetime = true,
                     ValidateIssuer = true,
                     ValidIssuer = jwtOptions.Issuer,
                     ValidateAudience = true,
                     ValidAudience = jwtOptions.Audience,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+                    ClockSkew = TimeSpan.FromMinutes(0)
                 };
 
             });
-        
+        builder.Services.AddAuthorization();
         builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
             {
                 //password configuration
@@ -116,9 +133,9 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
+        app.UseAuthentication();
         app.UseAuthorization();
-
+        
 
         app.MapControllers();
 
