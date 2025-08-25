@@ -32,13 +32,16 @@ public class AppDbContext : IdentityDbContext<ApplicationUser,IdentityRole<int>,
         {
 
             modelBuilder.Entity(entityType.ClrType).Property<DateTime>("DeletedAt")
-                .HasColumnType("DATETIME");
+                .HasColumnType("DATETIME")
+                .HasDefaultValueSql("GETUTCDATE()");
 
             modelBuilder.Entity(entityType.ClrType).Property<DateTime>("UpdatedAt")
-                .HasColumnType("DATETIME");
+                .HasColumnType("DATETIME")
+                .HasDefaultValueSql("GETUTCDATE()");
 
             modelBuilder.Entity(entityType.ClrType).Property<DateTime>("CreatedAt")
-                .HasColumnType("DATETIME");
+                .HasColumnType("DATETIME")
+                .HasDefaultValueSql("GETUTCDATE()");
 
             modelBuilder.Entity(entityType.ClrType).Property<bool>("IsDeleted")
                 .HasColumnType("BIT")
