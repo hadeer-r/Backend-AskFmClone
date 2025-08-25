@@ -90,7 +90,7 @@ public class CommentController : ControllerBase
     
     
     [HttpDelete("{id}/likes")]
-    public async Task<IActionResult> DeleteLike(int id)
+    public async Task<IActionResult> DeleteLike(int id, int userId)
     {
         try
         {
@@ -98,25 +98,26 @@ public class CommentController : ControllerBase
             if (comment == null)
                 throw new ArgumentException($"Comment with id {id} not found");
             
-            var userId = comment.UserId;
+            if (userId <= 0)
+                return BadRequest(new { message = "Invalid user id." });
             
-            await _commentLikeService.DeleteLikeAsync(id, userId.Value);
+            await _commentLikeService.DeleteLikeAsync(id, userId);
             
             return NoContent();
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Like not found for comment id: {CommentId} and user", id);
+            _logger.LogWarning(ex, "Like not found for comment id: {CommentId} and user {UserId}", id, userId);
             return NotFound(new { message = ex.Message });
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "Unauthorized delete attempt for comment id: {CommentId}", id);
+            _logger.LogWarning(ex, "Unauthorized delete attempt for comment id: {CommentId} by user {UserId}", id, userId);
             return Forbid();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting like from comment id: {CommentId}", id);
+            _logger.LogError(ex, "Error deleting like from comment id: {CommentId} by user {UserId}", id, userId);
             return StatusCode(500, new { message = "An error occurred while deleting like" });
         }
     }
