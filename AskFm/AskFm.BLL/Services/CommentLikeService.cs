@@ -118,7 +118,7 @@ public class CommentLikeService :  ICommentLikeService
     }
     
 
-    public async Task DeleteLikeAsync(int commentId, int userId)
+    public async Task<bool> DeleteLikeAsync(int commentId, int userId)
     {
         try
         {
@@ -130,7 +130,9 @@ public class CommentLikeService :  ICommentLikeService
                 throw new ArgumentException($"User didn't like this comment");
             
             
-            var commentLike = await _unitOfWork.CommentLikes.FindAsync(cl => cl.CommentId == commentId && cl.UserId == userId && !cl.IsDeleted);
+            var commentLike = await 
+                _unitOfWork.CommentLikes.FindAsync(
+                    predicate: cl => cl.CommentId == commentId && cl.UserId == userId && !cl.IsDeleted);
             
             // if the user didn't like  this comment before 
             if(commentLike == null)
@@ -145,10 +147,10 @@ public class CommentLikeService :  ICommentLikeService
             if (comment.LikeCount > 0)
                     comment.LikeCount--;
             
-           _unitOfWork.Comments.Update(comment);
+            _unitOfWork.Comments.Update(comment);
             
             await _unitOfWork.SaveAsync();
-            
+            return true;
         }
         catch (Exception e)
         {
