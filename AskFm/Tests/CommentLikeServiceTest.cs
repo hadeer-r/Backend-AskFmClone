@@ -77,14 +77,14 @@ public class CommentLikeServiceTest
         // Arrange
         var commentId = 1000;
         var userId = 5;
-        _mockCommentRepository.Setup(repo => repo.GetById(commentId))
-            .Returns((Comment)null);
+        _mockCommentRepository.Setup(repo => repo.GetByIdAsync(commentId))
+            .ReturnsAsync((Comment)null);
         
         // Assert
         await Assert.ThrowsAsync<ArgumentException>(() => _commentLikeService.AddLikeAsync(commentId, userId));
         
-        _mockCommentLikeRepository.Verify(repo => repo.Add(It.IsAny<CommentLike>()), Times.Never);
-        _mockUnitOfWork.Verify(uow => uow.Save(), Times.Never);
+        _mockCommentLikeRepository.Verify(repo => repo.AddAsync(It.IsAny<CommentLike>()), Times.Never);
+        _mockUnitOfWork.Verify(uow => uow.SaveAsync(), Times.Never);
         
     }
     
