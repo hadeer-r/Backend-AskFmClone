@@ -4,6 +4,7 @@ using AskFm.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AskFm.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250824210328_AddColumnToRefreshTokenTable")]
+    partial class AddColumnToRefreshTokenTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,14 +53,10 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<DateTime>("DeletedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -117,9 +116,7 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -156,14 +153,10 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<DateTime>("DeletedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -180,9 +173,7 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
@@ -207,14 +198,10 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<DateTime>("DeletedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -222,9 +209,7 @@ namespace AskFm.DAL.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.HasKey("UserId", "CommentId");
 
@@ -242,19 +227,13 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<DateTime>("DeletedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("BIT")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -262,9 +241,7 @@ namespace AskFm.DAL.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.HasKey("FollowerId", "FollowedId");
 
@@ -282,40 +259,31 @@ namespace AskFm.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<DateTime>("DeletedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("BIT")
                         .HasDefaultValue(false);
 
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("NVARCHAR");
-
                     b.Property<int>("ResourceId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("isRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("jsonContent")
+                        .IsRequired()
+                        .HasColumnType("NVARCHAR");
 
                     b.HasKey("Id");
 
@@ -333,14 +301,10 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<DateTime>("DeletedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -348,9 +312,7 @@ namespace AskFm.DAL.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.HasKey("SavedThreadId", "UserId");
 
@@ -379,14 +341,10 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<DateTime>("DeletedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -403,9 +361,7 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<bool>("isAnonymous")
                         .HasColumnType("bit");
@@ -428,14 +384,10 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<DateTime>("DeletedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -443,9 +395,7 @@ namespace AskFm.DAL.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("DATETIME")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("DATETIME");
 
                     b.HasKey("ThreadId", "UserId");
 
