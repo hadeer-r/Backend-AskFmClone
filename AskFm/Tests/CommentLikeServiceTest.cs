@@ -72,7 +72,7 @@ public class CommentLikeServiceTest
     }
 
     [Fact]
-    public async void AddLike_WhenCommentNotFoundOrDeleted_ThrowException()
+    public async Task AddLike_WhenCommentNotFoundOrDeleted_ThrowException()
     {
         // Arrange
         var commentId = 1000;
@@ -90,7 +90,7 @@ public class CommentLikeServiceTest
     
     
     [Fact]
-    public async void DeleteLike_WhenDeleteByAuthor_CommentIsDeleted()
+    public async Task DeleteLike_WhenDeleteByAuthor_CommentIsDeleted()
     {
         var commentId = 1;
         var userId = 5;
@@ -144,7 +144,7 @@ public class CommentLikeServiceTest
 
 
     [Fact]
-    public async void GetLikesForComment_WhenCommentLikesIsNotEmpty_ReturnsCommentLikesList()
+    public async Task GetLikesForComment_WhenCommentLikesIsNotEmpty_ReturnsCommentLikesList()
     {
         var commentId = 1;
         var userId = 4;
@@ -199,7 +199,7 @@ public class CommentLikeServiceTest
     
     
     [Fact]
-    public async void GetLikesForComment_WhenCommentLikesIsEmpty_ReturnsEmptyList()
+    public async Task GetLikesForComment_WhenCommentLikesIsEmpty_ReturnsEmptyList()
     {
         // Arrange
         var commentId = 1;
