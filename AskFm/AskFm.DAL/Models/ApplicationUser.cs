@@ -6,7 +6,6 @@ namespace AskFm.DAL.Models;
 public class ApplicationUser : IdentityUser<int>, ITrackable
 {
     public string Name { get; set; }
-    public string Email { get; set; }
     public string Bio { get; set; }
     public string AvatarPath { get; set; }
     
@@ -29,4 +28,8 @@ public class ApplicationUser : IdentityUser<int>, ITrackable
     public DateTime DeletedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    
+    
+    // tokens
+    public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
 }
