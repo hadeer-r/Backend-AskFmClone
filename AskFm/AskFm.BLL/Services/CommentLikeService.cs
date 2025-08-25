@@ -123,11 +123,14 @@ public class CommentLikeService :  ICommentLikeService
         try
         {
             _logger.LogInformation("Deleting the comment like from user {userid} on comment id {commentId}", userId, commentId);
-            var commentLike = await _unitOfWork.CommentLikes.FindAsync(cl => cl.CommentId == commentId && cl.UserId == userId && !cl.IsDeleted);
-
-            var comment = _unitOfWork.Comments.GetByIdAsync(commentId);
             
-            Console.WriteLine(comment.Result.Content);
+            var comment = await _unitOfWork.Comments.GetByIdAsync(commentId);
+            
+            if(comment == null)
+                throw new ArgumentException($"User didn't like this comment");
+            
+            
+            var commentLike = await _unitOfWork.CommentLikes.FindAsync(cl => cl.CommentId == commentId && cl.UserId == userId && !cl.IsDeleted);
             
             // if the user didn't like  this comment before 
             if(commentLike == null)
@@ -135,16 +138,21 @@ public class CommentLikeService :  ICommentLikeService
             
             await _unitOfWork.CommentLikes.RemoveAsync(commentLike);
             
-            comment.Result.IsDeleted = true;
-            comment.Result.CommentLikes.Remove(commentLike);
-            comment.Result.LikeCount--;
+            
+            if (comment.CommentLikes != null)
+                comment.CommentLikes.Remove(commentLike);
+            
+            if (comment.LikeCount > 0)
+                    comment.LikeCount--;
+            
+           _unitOfWork.Comments.Update(comment);
             
             await _unitOfWork.SaveAsync();
             
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            _logger.LogError(e, "Failed to delete like by user {UserId} on comment {CommentId}", userId, commentId);
             throw;
         }
     }
