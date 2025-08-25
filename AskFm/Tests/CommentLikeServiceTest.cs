@@ -90,7 +90,7 @@ public class CommentLikeServiceTest
     
     
     [Fact]
-    public void DeleteLike_WhenDeleteByAuthor_CommentIsDeleted()
+    public async void DeleteLike_WhenDeleteByAuthor_CommentIsDeleted()
     {
         var commentId = 1;
         var userId = 5;
@@ -128,7 +128,7 @@ public class CommentLikeServiceTest
         
         
         // Act
-        _commentLikeService.DeleteLikeAsync(commentId, userId);
+        await _commentLikeService.DeleteLikeAsync(commentId, userId);
         
         
         
