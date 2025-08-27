@@ -37,16 +37,25 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    [Route("current-user")]
+    [Route("profile")]
     public async Task<IActionResult> GetCurrentUserAsync()
     {
         var result = await _userService.GetCurrentUserAsync();
-
+        
         if (!result.success)
         {
             return BadRequest(result.Errors);
         }
-        return Ok(result.Data);
+        ReadUserDTO readUserDTO = new ReadUserDTO()
+        {
+            Name = result.Data.Name,
+            Email = result.Data.Email,
+            AvatarPath = result.Data.AvatarPath,
+            Bio = result.Data.Bio,
+            followerCount = result.Data.FollowersCount,
+            LastSeen = result.Data.LastSeen,
+        };
+        return Ok(readUserDTO);
     }
     /*
   GET Users only for now
