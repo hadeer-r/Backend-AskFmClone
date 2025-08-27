@@ -52,7 +52,7 @@ public class UserService : IUserService
         throw new NotImplementedException();
     }
 
-    public async Task<ServiceResult<ReadUserDTO>> GetCurrentUserAsync()
+    public async Task<ServiceResult<ApplicationUser>> GetCurrentUserAsync()
     {
         string email = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Email).Value;
         if (string.IsNullOrEmpty(email))
@@ -61,19 +61,11 @@ public class UserService : IUserService
             {
                 "Can't Access Current user"
             };
-            return await ServiceResult<ReadUserDTO>.Failure(errors);
+            return await ServiceResult<ApplicationUser>.Failure(errors);
         }
         var currentAppUser = await _userManager.FindByEmailAsync(email);
 
-        return await ServiceResult<ReadUserDTO>.Success(new ReadUserDTO()
-        {
-            Name = currentAppUser.Name,
-            Email = currentAppUser.Email,
-            LastSeen = currentAppUser.LastSeen,
-            Bio = currentAppUser.Bio,
-            AvatarPath = currentAppUser.AvatarPath,
-            followerCount = currentAppUser.FollowersCount
-        });
+        return await ServiceResult<ApplicationUser>.Success(currentAppUser);
     }
 
     public Task<ServiceResult<ReadUserDTO>> ResetPassword(string newPassword)

@@ -1,4 +1,5 @@
 using AskFm.BLL.DTO.UserDTOs;
+using AskFm.DAL.Models;
 
 namespace AskFm.BLL.Services.UserIdentityService;
 
@@ -10,7 +11,7 @@ public interface IUserService
     Task<ServiceResult<bool>> UnfollowUserAsync(int followerId, int targetUserId);
     Task UpdateLastSeenAsync(int userId, DateTime lastSeen);
     Task<ServiceResult<ReadUserDTO>> GetUserByIdAsync(int userId);
-    Task<ServiceResult<ReadUserDTO>> GetCurrentUserAsync();
+    Task<ServiceResult<ApplicationUser>> GetCurrentUserAsync();
     Task<ServiceResult<ReadUserDTO>> ResetPassword(string newPassword);
     Task<ServiceResult<ReadUserDTO>> ConfirmEmail();
     
