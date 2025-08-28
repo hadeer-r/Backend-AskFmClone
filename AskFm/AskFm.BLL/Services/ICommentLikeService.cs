@@ -4,7 +4,7 @@ namespace AskFm.BLL.Services;
 
 public interface ICommentLikeService
 {
-    Task<IEnumerable<CommentLikeDto>> GetLikesForCommentAsync(int commentId);
-    Task<CommentLikeDto> AddLikeAsync(int commentId, int userId);
-    Task<bool> DeleteLikeAsync(int commentId, int userId);
+    Task<ServiceResult<IEnumerable<CommentLikeDto>>> GetLikesForCommentAsync(int commentId);
+    Task<ServiceResult<CommentLikeDto>> AddLikeAsync(int commentId, int userId);
+    Task<ServiceResult<CommentLikeDto>> DeleteLikeAsync(int commentId, int userId);
 }

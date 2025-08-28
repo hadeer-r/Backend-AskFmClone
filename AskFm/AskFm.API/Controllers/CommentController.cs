@@ -43,12 +43,20 @@ public class CommentController : ControllerBase
         try
         {
             var likes = await _commentLikeService.GetLikesForCommentAsync(id);
+            if (!likes.success)
+            {
+                return BadRequest(likes.Errors);
+            }
             return Ok(likes);
         }
         catch (ArgumentException ex)
         {
             _logger.LogWarning(ex, "Comment not found with id: {CommentId}", id);
-            return NotFound(new { message = ex.Message });
+            return NotFound(new
+            {
+                message = ex.Message,
+                
+            });
         }
         catch (Exception ex)
         {
@@ -68,12 +76,21 @@ public class CommentController : ControllerBase
         {
             var user = await _userService.GetCurrentUserAsync();
             
+            if (!user.success)
+            {
+                return BadRequest(user.Errors);
+            }
+            
             var createdLike = await _commentLikeService.AddLikeAsync(id, user.Data.Id);
             
+            if (!createdLike.success)
+            {
+                return BadRequest(createdLike.Errors);
+            }
             return CreatedAtAction(
                 nameof(GetAllLikes), 
                 new { id = id }, 
-                createdLike);
+                createdLike.Data);
         }
         catch (ArgumentException ex)
         {
@@ -96,18 +113,31 @@ public class CommentController : ControllerBase
     
     
     [HttpDelete("{id}/likes")]
-    public async Task<IActionResult> DeleteLike(int id, int userId)
+    public async Task<IActionResult> DeleteLike(int id)
     {
+        int userId = 0;
         try
         {
-            var comment = _commentService.GetComment(id);
-            if (comment == null)
-                throw new ArgumentException($"Comment with id {id} not found");
             
-            if (userId <= 0)
-                return BadRequest(new { message = "Invalid user id." });
+            var user = await _userService.GetCurrentUserAsync();
+
+            if (user==null || !user.success)
+                return BadRequest(user.Errors);
             
-            await _commentLikeService.DeleteLikeAsync(id, userId);
+            
+            userId = user.Data.Id;
+            var comment = await _commentService.GetCommentAsync(id);
+            
+            if (comment == null || !user.success)
+                return BadRequest(user.Errors);
+            
+            
+            var result = await _commentLikeService.DeleteLikeAsync(id, userId);
+
+            if (!result.success)
+            {
+                return BadRequest(result.Errors);
+            }
             
             return NoContent();
         }

@@ -4,5 +4,5 @@ namespace AskFm.BLL.Services;
 
 public interface ICommentService
 {
-    Comment GetComment(int commentId);
+    Task<ServiceResult<Comment>> GetCommentAsync(int commentId);
 }

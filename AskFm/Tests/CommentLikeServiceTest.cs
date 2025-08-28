@@ -191,7 +191,7 @@ public class CommentLikeServiceTest
         
         // Assert 
         Assert.NotNull(result);
-        Assert.Equal(5, result.Count());
+        Assert.Equal(5, result.Data.Count());
 
         Assert.Equivalent(expectedDtos, result);
         
@@ -227,7 +227,7 @@ public class CommentLikeServiceTest
         
         
         // Assert
-        Assert.Empty(result);
+        Assert.Empty(result.Data);
         
     }
     

@@ -1,8 +1,10 @@
+using System.Runtime.InteropServices.JavaScript;
 using AskFm.BLL.DTO;
 using AskFm.DAL.Interfaces;
 using AskFm.DAL.Models;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 
 namespace AskFm.BLL.Services;
 
@@ -20,7 +22,7 @@ public class CommentLikeService :  ICommentLikeService
     
     
     
-    public async Task<IEnumerable<CommentLikeDto>> GetLikesForCommentAsync(int commentId)
+    public async Task<ServiceResult<IEnumerable<CommentLikeDto>>> GetLikesForCommentAsync(int commentId)
     {
         try
         {
@@ -44,16 +46,16 @@ public class CommentLikeService :  ICommentLikeService
                 UserName = like.User?.UserName
             });
 
-            return likeDtos;
+            return await ServiceResult<IEnumerable<CommentLikeDto>>.Success(likeDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving likes for comment id: {CommentId}", commentId);
-            throw;
+            return await ServiceResult<IEnumerable<CommentLikeDto>>.Failure(new List<string>() { ex.Message });
         }    
     }
 
-    public async Task<CommentLikeDto> AddLikeAsync(int commentId, int userId)
+    public async Task<ServiceResult<CommentLikeDto>> AddLikeAsync(int commentId, int userId)
     {
         try
             {
@@ -61,19 +63,60 @@ public class CommentLikeService :  ICommentLikeService
                     commentId, userId);
 
                 var comment = await _unitOfWork.Comments.GetByIdAsync(commentId);
+                var user = await _unitOfWork.Users.GetByIdAsync(userId);
+                if (user == null)
+                {
+                    var errors = new List<String>()
+                    {
+                        $"User with id {userId} not found"
+                    };
+                    return await ServiceResult<CommentLikeDto>.Failure(errors);
+                }
                 
+                string userName = user.UserName;
                 if (comment == null)
                 {
-                    throw new ArgumentException($"Comment with id {commentId} not found");
+                    var errors = new List<String>()
+                    {
+                        $"Comment with id {commentId} not found"
+                    };
+                    return await ServiceResult<CommentLikeDto>.Failure(errors);
                 }
 
                 var existingLike = await _unitOfWork.CommentLikes.FindAsync(
-                    cl => cl.CommentId == commentId && cl.UserId == userId && !cl.IsDeleted
+                    cl => cl.CommentId == commentId && cl.UserId == userId
                 );
 
+                // if the CommentLike already exit in the DB
                 if (existingLike != null)
                 {
-                    throw new InvalidOperationException("User has already liked this comment");
+                    // if the The use already liked this comment
+                    if (!existingLike.IsDeleted)
+                    {
+                        var errors = new List<String>()
+                        {
+                            "User has already liked this comment"
+                        };
+                        return await ServiceResult<CommentLikeDto>.Failure(errors);
+                    }
+
+                    // otherwise , the user liked the commend , then unliked it , and then wants to like it again
+                    existingLike.IsDeleted = false;
+                    comment.LikeCount++;
+                    _unitOfWork.Comments.Update(comment);
+                    await _unitOfWork.SaveAsync();
+                    _logger.LogInformation("Like added successfully for comment id: {CommentId}", commentId);
+                    
+                    
+                    // updating the createdAt column to Now , ignoring the first time the user liked the comment
+                    existingLike.CreatedAt = DateTime.Now;
+                    return await ServiceResult<CommentLikeDto>.Success(new CommentLikeDto
+                    {
+                        CommentId = existingLike.CommentId,
+                        UserId = existingLike.UserId,
+                        UserName = userName,
+                        CreatedAt = existingLike.CreatedAt
+                    });
                 }
 
                 var newLike = new CommentLike
@@ -90,44 +133,40 @@ public class CommentLikeService :  ICommentLikeService
                 await _unitOfWork.SaveAsync();
 
                 _logger.LogInformation("Like added successfully for comment id: {CommentId}", commentId);
-
-                
-                var user = await _unitOfWork.Users.GetByIdAsync(userId);
-                
-                if (user == null)
-                    throw new ArgumentException($"User with id {userId} not found");
-                
-                string userName = user.UserName;
-                
-                
-                return new CommentLikeDto
+                return await ServiceResult<CommentLikeDto>.Success(new CommentLikeDto
                 {
                     CommentId = newLike.CommentId,
                     UserId = newLike.UserId,
                     UserName = userName,
                     CreatedAt = newLike.CreatedAt
-                };
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding like for comment id: {CommentId} by user id: {UserId}", 
                     commentId, userId);
-                throw;
+                return await ServiceResult<CommentLikeDto>.Failure(new List<string>(){ex.Message});
             }
         
     }
     
 
-    public async Task<bool> DeleteLikeAsync(int commentId, int userId)
+    public async Task<ServiceResult<CommentLikeDto>> DeleteLikeAsync(int commentId, int userId)
     {
         try
         {
             _logger.LogInformation("Deleting the comment like from user {userid} on comment id {commentId}", userId, commentId);
             
             var comment = await _unitOfWork.Comments.GetByIdAsync(commentId);
-            
-            if(comment == null)
-                throw new ArgumentException($"User didn't like this comment");
+
+            if (comment == null)
+            {
+                var errors = new List<string>()
+                {
+                    "$User didn't like this comment"
+                };
+                return await ServiceResult<CommentLikeDto>.Failure(errors);
+            }
             
             
             var commentLike = await 
@@ -135,8 +174,15 @@ public class CommentLikeService :  ICommentLikeService
                     predicate: cl => cl.CommentId == commentId && cl.UserId == userId && !cl.IsDeleted);
             
             // if the user didn't like  this comment before 
-            if(commentLike == null)
-                throw new ArgumentException($"User didn't like this comment");
+            if (commentLike == null)
+            {
+                var errors = new List<string>()
+                {
+                    "User didn't like this comment"
+                    
+                };
+                return await ServiceResult<CommentLikeDto>.Failure(errors);
+            }
             
             await _unitOfWork.CommentLikes.RemoveAsync(commentLike);
             
@@ -150,12 +196,13 @@ public class CommentLikeService :  ICommentLikeService
             _unitOfWork.Comments.Update(comment);
             
             await _unitOfWork.SaveAsync();
-            return true;
+            
+            return await ServiceResult<CommentLikeDto>.Success();
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Failed to delete like by user {UserId} on comment {CommentId}", userId, commentId);
-            throw;
+            return await ServiceResult<CommentLikeDto>.Failure(new List<string>(){e.Message});
         }
     }
 }

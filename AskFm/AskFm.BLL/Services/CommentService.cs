@@ -11,10 +11,17 @@ public class CommentService : ICommentService
         _unitOfWork = unitOfWork;
     }
     
-    public Comment GetComment(int commentId)
+    public async Task<ServiceResult<Comment>> GetCommentAsync(int commentId)
     {
-        var comment = _unitOfWork.Comments.GetById(commentId);
-        return comment;
+        try
+        {
+            var comment = await _unitOfWork.Comments.GetByIdAsync(commentId);
+            return await ServiceResult<Comment>.Success(comment);
+        }
+        catch (Exception e)
+        {
+            return await ServiceResult<Comment>.Failure(new List<string>(){e.Message});
+        }
     }
 
     
