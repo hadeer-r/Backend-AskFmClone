@@ -8,8 +8,14 @@ using AskFm.DAL.Repositories;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore.Proxies;
-namespace AskFm.API;
+using AskFm.BLL.Hub;
+using AskFm.BLL.Services;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using AskFm.BLL.Services.UserIdentityService;
 
+namespace AskFm.API;
 
 public class Program
 {
@@ -18,7 +24,6 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
@@ -29,6 +34,7 @@ public class Program
         {
             throw new Exception("Connection string is null");
         }
+
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddDbContext<AppDbContext>(options =>
             options
@@ -36,13 +42,14 @@ public class Program
                 .UseSqlServer(ConnectionString));
         
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+        builder.Services.AddScoped<INotificationService, NotificationService>();
+
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
         
-
         JwtOptions jwtOptions = new JwtOptions
         {
             Issuer = Environment.GetEnvironmentVariable("ISSUER"),
@@ -55,6 +62,39 @@ public class Program
         {
             throw new Exception("jwtOptions is null");
         }
+
+        // Enhanced SignalR Configuration
+        builder.Services.AddSignalR(options =>
+        {
+            options.EnableDetailedErrors = true;
+            options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+            options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+            options.HandshakeTimeout = TimeSpan.FromSeconds(15);
+        });
+
+        // CORS Configuration for SignalR
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("SignalRPolicy", policy =>
+            {
+                // Option 1: Allow any origin (for development only)
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+
+                // Option 2: Specific origins (uncomment and modify when you know frontend URLs)
+                // policy.WithOrigins(
+                //     "http://localhost:3000",    // React default
+                //     "http://localhost:4200",    // Angular default
+                //     "http://localhost:8080",    // Vue default
+                //     "http://localhost:5173",    // Vite default
+                //     "https://yourdomain.com"    // Production domain
+                // )
+                // .AllowAnyMethod()
+                // .AllowAnyHeader()
+                // .AllowCredentials();
+            });
+        });
 
         builder.Services.Configure<JwtOptions>(Options =>
         {
@@ -69,9 +109,8 @@ public class Program
             {
                 options.DefaultAuthenticateScheme = "Bearer";
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                
             })
-            .AddJwtBearer( Options =>
+            .AddJwtBearer(Options =>
             {
                 Options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -85,7 +124,23 @@ public class Program
                     ClockSkew = TimeSpan.FromMinutes(0)
                 };
 
+                // Enable JWT authentication for SignalR
+                Options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationHub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
+
         builder.Services.AddAuthorization();
         builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
             {
@@ -108,30 +163,33 @@ public class Program
                 options.SignIn.RequireConfirmedEmail = false;
                 options.SignIn.RequireConfirmedAccount = false;
                 options.SignIn.RequireConfirmedPhoneNumber = false;
-                /*
-                 * close confirmed email imediatly in register,
-                 * but in other scenario we will block some action untill the user verify his email
-                 */
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
-        
-        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment()) app.MapOpenApi();
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/openapi/v1.json", "api");
+            });
+        }
 
         app.UseHttpsRedirection();
+
+        // Apply CORS before authentication
+        app.UseCors("SignalRPolicy");
+
         app.UseAuthentication();
         app.UseAuthorization();
-        
 
         app.MapControllers();
 
+        // Map SignalR Hub
         app.MapHub<NotificationHub>("/notificationHub");
 
         app.Run();

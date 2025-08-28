@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AskFm.BLL.Hub
 {
+    [Authorize]
     public class NotificationHub : Microsoft.AspNetCore.SignalR.Hub
     {
         public async Task JoinUserGroup(string userId)
@@ -14,8 +16,24 @@ namespace AskFm.BLL.Hub
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
         }
 
-        public override async Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnConnectedAsync()
         {
+            // Auto-join user to their group based on their ID from JWT token
+            var userId = Context.UserIdentifier;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
+            }
+            await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            var userId = Context.UserIdentifier;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
+            }
             await base.OnDisconnectedAsync(exception);
         }
     }

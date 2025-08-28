@@ -111,20 +111,20 @@ public class NotificationService : INotificationService
         notification.IsRead = true;
         _unitOfWork.Notifications.Update(notification);
         await _unitOfWork.SaveAsync();
-        
+
         return "notification has been read";
     }
 
     public async Task<string> MarkAllNotificationsAsRead(int userId)
     {
         var unreadNotifications = await _unitOfWork.Notifications.FindAllAsync(n => n.UserId == userId && !n.IsRead);
-        
+
         foreach (var notification in unreadNotifications)
         {
             notification.IsRead = true;
             _unitOfWork.Notifications.Update(notification);
         }
-        
+
         await _unitOfWork.SaveAsync();
         return "All notifications marked as read";
     }
@@ -144,7 +144,10 @@ public class NotificationService : INotificationService
 
         await _unitOfWork.Notifications.AddAsync(notification);
         await _unitOfWork.SaveAsync();
-        
+
+        // Get actor information for the notification
+        var actorUser = await _notificationRepository.GetActorUserByResourceId(resourceId, type);
+
         var notificationDto = new NotificationDto
         {
             Id = notification.Id,
@@ -153,10 +156,19 @@ public class NotificationService : INotificationService
             ResourceId = notification.ResourceId,
             Message = notification.Message,
             IsRead = notification.IsRead,
-            CreatedAt = notification.CreatedAt
+            CreatedAt = notification.CreatedAt,
+            Actor = actorUser == null ? null : new ActorDto
+            {
+                Id = actorUser.Id,
+                Username = actorUser.UserName ?? "Unknown",
+                AvatarPath = actorUser.AvatarPath ?? string.Empty
+            }
         };
 
+        // Send real-time notification to the specific user
         await _hubContext.Clients.Group($"user_{userId}")
             .SendAsync("ReceiveNotification", notificationDto);
     }
+    
+    
 }
