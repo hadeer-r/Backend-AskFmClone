@@ -77,12 +77,20 @@ public class CommentLikeServiceTest
         // Arrange
         var commentId = 1000;
         var userId = 5;
+        var user = new ApplicationUser()
+        {
+            Name = "ziad"
+        };
         _mockCommentRepository.Setup(repo => repo.GetByIdAsync(commentId))
             .ReturnsAsync((Comment)null);
+        _mockUserRepository.Setup(repo => repo.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+        
+        var result = await _commentLikeService.AddLikeAsync(commentId, userId);
         
         // Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => _commentLikeService.AddLikeAsync(commentId, userId));
-        
+        Assert.False(result.success); 
+        Assert.Contains($"Comment with id {commentId} not found", result.Errors);
         _mockCommentLikeRepository.Verify(repo => repo.AddAsync(It.IsAny<CommentLike>()), Times.Never);
         _mockUnitOfWork.Verify(uow => uow.SaveAsync(), Times.Never);
         
@@ -190,10 +198,11 @@ public class CommentLikeServiceTest
         
         
         // Assert 
-        Assert.NotNull(result);
+        Assert.True(result.success);
+        Assert.NotNull(result.Data);
         Assert.Equal(5, result.Data.Count());
 
-        Assert.Equivalent(expectedDtos, result);
+        Assert.Equivalent(expectedDtos, result.Data);
         
     }
     
