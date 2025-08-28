@@ -1,11 +1,13 @@
 using AskFm.BLL.Services;
 using AskFm.DAL.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AskFm.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class NotificationController : ControllerBase
     {
         private readonly INotificationService _notificationService;
@@ -15,11 +17,12 @@ namespace AskFm.API.Controllers
             _notificationService = notificationService;
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetUserNotifications(int userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        [HttpGet]
+        public async Task<IActionResult> GetUserNotifications([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
+                var userId = GetCurrentUserId();
                 var notifications = await _notificationService.GetUserNotifications(userId, pageNumber, pageSize);
                 return Ok(notifications);
             }
@@ -29,11 +32,12 @@ namespace AskFm.API.Controllers
             }
         }
 
-        [HttpGet("{userId}/type/{category}")]
-        public async Task<IActionResult> GetNotificationsByType(int userId, string category, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        [HttpGet("type/{category}")]
+        public async Task<IActionResult> GetNotificationsByType(string category, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
+                var userId = GetCurrentUserId();
                 var response = await _notificationService.GetNotificationsByType(userId, category, pageNumber, pageSize);
                 return Ok(response);
             }
@@ -52,8 +56,17 @@ namespace AskFm.API.Controllers
         {
             try
             {
-                var result = await _notificationService.MarkNotificationAsRead(notificationId);
+                var userId = GetCurrentUserId();
+                var result = await _notificationService.MarkNotificationAsRead(notificationId, userId);
                 return Ok(new { message = result });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
             }
             catch (Exception ex)
             {
@@ -61,11 +74,12 @@ namespace AskFm.API.Controllers
             }
         }
 
-        [HttpPut("{userId}/read-all")]
-        public async Task<IActionResult> MarkAllNotificationsAsRead(int userId)
+        [HttpPut("read-all")]
+        public async Task<IActionResult> MarkAllNotificationsAsRead()
         {
             try
             {
+                var userId = GetCurrentUserId();
                 var result = await _notificationService.MarkAllNotificationsAsRead(userId);
                 return Ok(new { message = result });
             }
@@ -76,18 +90,36 @@ namespace AskFm.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateNotification(int userId, NotificationStatus type, int resourceId, string message)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationRequest request)
         {
             try
             {
-                await _notificationService.CreateNotification(userId, type, resourceId, message);
-
-                return CreatedAtAction(nameof(GetUserNotifications), new { userId = userId }, new { message = "Notification created successfully" });
+                await _notificationService.CreateNotification(request.UserId, request.Type, request.ResourceId, request.Message);
+                return Ok(new { message = "Notification created successfully" });
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                throw new UnauthorizedAccessException("Invalid user token");
+            }
+            return userId;
+        }
+    }
+
+    public class CreateNotificationRequest
+    {
+        public int UserId { get; set; }
+        public NotificationStatus Type { get; set; }
+        public int ResourceId { get; set; }
+        public string Message { get; set; }
     }
 }

@@ -102,11 +102,11 @@ public class NotificationService : INotificationService
 
         return notificationDtos;
     }
-    public async Task<string> MarkNotificationAsRead(int notificationId)
+    public async Task<string> MarkNotificationAsRead(int notificationId, int userId)
     {
-        var notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
+        var notification = await _notificationRepository.GetUserNotificationById(notificationId, userId);
         if (notification == null)
-            throw new InvalidOperationException($"Notification with ID {notificationId} not found.");
+            throw new InvalidOperationException("Notification not found or access denied.");
 
         notification.IsRead = true;
         _unitOfWork.Notifications.Update(notification);

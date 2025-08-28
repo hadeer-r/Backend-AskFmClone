@@ -13,34 +13,34 @@ public class NotificationRepository : INotificationRepository
     {
         _unitOfWork = unitOfWork;
     }
-    
+
     public async Task<(IEnumerable<Notification> notifications, int totalCount)> GetAllNotifications(int userId, int pageNumber, int pageSize)
     {
         var query = _unitOfWork.Notifications.FindAll(n => n.UserId == userId);
-            
+
         var totalCount = await query.CountAsync();
-        
+
         var notifications = await query
             .OrderByDescending(n => n.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
-            
+
         return (notifications, totalCount);
     }
-    
+
     public async Task<(IEnumerable<Notification> notifications, int totalCount)> GetNotificationsByType(int userId, NotificationStatus status, int pageNumber, int pageSize)
     {
         var query = _unitOfWork.Notifications.FindAll(n => n.UserId == userId && n.Type == status);
 
         var totalCount = await query.CountAsync();
-        
+
         var notifications = await query
             .OrderByDescending(n => n.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
-        
+
         return (notifications, totalCount);
     }
 
@@ -77,5 +77,10 @@ public class NotificationRepository : INotificationRepository
             return comment?.User;
         }
         return null;
+    }
+
+    public async Task<Notification?> GetUserNotificationById(int notificationId, int userId)
+    {
+        return await _unitOfWork.Notifications.FindAsync(n => n.Id == notificationId && n.UserId == userId);
     }
 }
