@@ -86,7 +86,6 @@ public class UserController : ControllerBase
         return RedirectToAction("GetUserAsync", new { userId = userId });
     }
     
-    
     [HttpDelete]
     [Route("profile/{userId}")]
     public async Task<IActionResult> DeleteUserAsync(int userId)
@@ -96,6 +95,7 @@ public class UserController : ControllerBase
             return Forbid("Cannot Remove this user");
         }
         var result = await _userService.DeleteUserAsync(userId);
+        
         if (!result.success)
         {
             return BadRequest(result.Errors);
@@ -163,7 +163,8 @@ public class UserController : ControllerBase
         return Ok();
     }
     
-    // -------------------------------------------------------------------
+    
+    //-------------------------------------------------------------------
     // Helper functions
     private async Task<bool> _checkCurrentUser(int userId)
     {
@@ -175,6 +176,8 @@ public class UserController : ControllerBase
     /*
     update email
     confirm email
-  */   
+    check user not deleted in login
+    
+    */   
     
 }
