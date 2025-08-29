@@ -40,8 +40,18 @@ public class AuthService : IAuthService
         }
 
         var getUser = await _userManager.FindByEmailAsync(request.Email);
+        
 
         if (getUser == null)
+        {
+            var erros = new List<string>
+            {
+                "Invalid Email or Password."
+            };
+            return await ServiceResult<AuthResponseDTO>.Failure(erros);
+        }
+
+        if (getUser.IsDeleted)
         {
             var erros = new List<string>
             {
@@ -62,7 +72,6 @@ public class AuthService : IAuthService
 
     }
     
-
     public async Task<ServiceResult<AuthResponseDTO>> RegisterAsync(RegisterUserDTO request)
     {
         if (request == null)

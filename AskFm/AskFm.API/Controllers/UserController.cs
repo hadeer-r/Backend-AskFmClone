@@ -103,7 +103,6 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-
     [HttpPost]
     [Route("profile/{followerId}/follow/{targetUserId}")]
     public async Task<IActionResult> FollowUserAsync(int followerId, int targetUserId)
