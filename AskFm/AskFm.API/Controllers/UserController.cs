@@ -23,7 +23,7 @@ public class UserController : ControllerBase
         _userService = userService;
     }
     [HttpGet]
-    [Route("GetUsers")]
+    [Route("GetAllUsers")]
     public async Task<IActionResult> GetUsers()
     {
         var result = _unitOfWork.Users.GetAll().Select(u => new
@@ -57,16 +57,124 @@ public class UserController : ControllerBase
         };
         return Ok(readUserDTO);
     }
+
+    [HttpGet]
+    [Route("profile/{userId}")]
+    public async Task<IActionResult> GetUserAsync(int userId)
+    {
+        var result = await _userService.GetUserByIdAsync(userId);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        return Ok(result.Data);
+    }
+    
+    [HttpPost]
+    [Route("profile/update/{userId}")]
+    public async Task<IActionResult> UpdateUserAsync(int userId, UpdateUserDTO updatedUser)
+    {
+        if (!await _checkCurrentUser(userId))
+        {
+            return Forbid("Cannot Update this user");
+        }
+        var result = await _userService.UpdateUserAsync(userId, updatedUser);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        return RedirectToAction("GetUserAsync", new { userId = userId });
+    }
+    
+    
+    [HttpDelete]
+    [Route("profile/{userId}")]
+    public async Task<IActionResult> DeleteUserAsync(int userId)
+    {
+        if (!await _checkCurrentUser(userId))
+        {
+            return Forbid("Cannot Remove this user");
+        }
+        var result = await _userService.DeleteUserAsync(userId);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        return Ok();
+    }
+
+
+    [HttpPost]
+    [Route("profile/{followerId}/follow/{targetUserId}")]
+    public async Task<IActionResult> FollowUserAsync(int followerId, int targetUserId)
+    {
+        if (await _checkCurrentUser(targetUserId))
+        {
+            return Forbid("Cannot Follow the current user");
+        }
+        if (!await _checkCurrentUser(followerId))
+        {
+            return Forbid("User can't perform this follow");
+        }
+
+        var result = await _userService.FollowUserAsync(followerId, targetUserId);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        return Ok();
+    }
+    
+    [HttpPost]
+    [Route("profile/{followerId}/unfollow/{targetUserId}")]
+    public async Task<IActionResult> UnFollowUserAsync(int followerId, int targetUserId)
+    {
+        if (await _checkCurrentUser(targetUserId))
+        {
+            return Forbid("Cannot unFollow the current user");
+        }
+        if (!await _checkCurrentUser(followerId))
+        {
+            return Forbid("User can't perform this unfollow");
+        }
+
+        var result = await _userService.UnfollowUserAsync(followerId, targetUserId);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        return Ok();
+    }
+    
+    [HttpPost]
+    [Route("profile/update/pass/{userId}")]
+    public async Task<IActionResult> UpdatePassword(int userId, string currentPassword, string updatedPassword)
+    {
+        if (await _checkCurrentUser(userId))
+        {
+            return Forbid("Cannot unFollow the current user");
+        }
+        var result = await _userService.UpdatePassword(userId, currentPassword, updatedPassword);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok();
+    }
+    
+    // -------------------------------------------------------------------
+    // Helper functions
+    private async Task<bool> _checkCurrentUser(int userId)
+    {
+        var current_user = _userService.GetCurrentUserAsync();
+        return current_user.Id != userId;
+    }
+
+    
     /*
-  GET Users only for now
-    getUserbyId
-    EditUser
-    DeleteUser
-    FollowUser
-    unfollowUser
-    reset password
+    update email
     confirm email
-    Helper Function: getCurrentUserId
   */   
     
 }

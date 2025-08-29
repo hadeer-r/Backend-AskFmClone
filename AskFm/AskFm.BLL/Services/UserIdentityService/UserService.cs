@@ -4,6 +4,7 @@ using AskFm.DAL.Interfaces;
 using AskFm.DAL.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AskFm.BLL.Services.UserIdentityService;
 
@@ -22,34 +23,175 @@ public class UserService : IUserService
     }
 
 
-    public Task<ServiceResult<UpdateUserDTO>> UpdateUserAsync(int userId, UpdateUserDTO updatedUser)
+    public async Task<ServiceResult<bool>> UpdateUserAsync(int userId, UpdateUserDTO updatedUser)
     {
-        throw new NotImplementedException();
+        var res = await CheckNullObjectAsync<bool,UpdateUserDTO>(updatedUser);
+        if (!res.success) return res;
+
+        var AppUserToUpdate = await _unitOfWork.Users.GetByIdAsync(userId);
+        if (AppUserToUpdate == null)
+        {
+            return await ServiceResult<bool>.Failure(new List<string> { "User not found" });
+        }
+        AppUserToUpdate.Name =  updatedUser.Name;
+        AppUserToUpdate.Bio =  updatedUser.Bio;
+        AppUserToUpdate.AvatarPath = updatedUser.AvatarPath;
+        
+        await _unitOfWork.Users.UpdateAsync(AppUserToUpdate);
+        await _unitOfWork.SaveAsync();
+        return await ServiceResult<bool>.Success();
     }
 
-    public Task<ServiceResult<bool>> DeleteUserAsync(int userId)
+    public async Task<ServiceResult<bool>> DeleteUserAsync(int userId)
     {
-        throw new NotImplementedException();
+        var appUser = _unitOfWork.Users.GetById(userId);
+        var res = await CheckNullObjectAsync<bool,ApplicationUser>(appUser);
+        if (!res.success) return res;
+        
+        await _unitOfWork.Users.RemoveAsync(appUser);
+        await _unitOfWork.SaveAsync();
+        return await ServiceResult<bool>.Success(true);
     }
 
-    public Task<ServiceResult<bool>> FollowUserAsync(int followerId, int targetUserId)
+    public async Task<ServiceResult<bool>> FollowUserAsync(int followerId, int targetUserId)
     {
-        throw new NotImplementedException();
+        
+        if (followerId == targetUserId)
+        {
+            return await ServiceResult<bool>.Failure(new List<string> { "Invalid user" });
+        }
+        
+        await using var transaction = await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            var userFollower = await _unitOfWork.Users.GetByIdAsync(followerId);
+            var res = await CheckNullObjectAsync<bool,ApplicationUser>(userFollower);
+            if (!res.success) return res;
+            
+            var targetUser = await _unitOfWork.Users.GetByIdAsync(targetUserId);
+            var res2 = await CheckNullObjectAsync<bool,ApplicationUser>(targetUser);
+            if (!res2.success) return res;
+
+            var followExist = await _unitOfWork.Follows.GetAll()
+                .FirstOrDefaultAsync(f => f.FollowedId == targetUserId 
+                                     && f.FollowerId == followerId);
+
+            if (followExist == null)
+            {
+                Follow follow = new Follow()
+                {
+                    FollowerId = followerId,
+                    FollowedId = targetUserId,
+
+                };
+
+                userFollower.FollowingCount++;
+                targetUser.FollowersCount++;
+                await _unitOfWork.Follows.AddAsync(follow);
+
+            }
+            else
+            {
+                followExist.IsActive = true;
+                if (followExist.IsDeleted)
+                {
+                    userFollower.FollowingCount++;
+                    targetUser.FollowersCount++;
+                    followExist.IsDeleted = false;
+                }
+
+                await _unitOfWork.Follows.UpdateAsync(followExist);
+            }
+
+            await _unitOfWork.Users.UpdateAsync(userFollower);
+            await _unitOfWork.Users.UpdateAsync(targetUser);
+            await _unitOfWork.SaveAsync();
+            await transaction.CommitAsync();
+            return await ServiceResult<bool>.Success(true);
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return await ServiceResult<bool>.Failure(new List<string>() { "Invalid Follow Operation" });
+        }
     }
 
-    public Task<ServiceResult<bool>> UnfollowUserAsync(int followerId, int targetUserId)
+    public async Task<ServiceResult<bool>> UnfollowUserAsync(int followerId, int targetUserId)
     {
-        throw new NotImplementedException();
+        if (followerId == targetUserId)
+        {
+            return await ServiceResult<bool>.Failure(new List<string> { "Invalid user" });
+        }
+        await using var transaction = await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            var userFollower = await _unitOfWork.Users.GetByIdAsync(followerId);
+            var res = await CheckNullObjectAsync<bool,ApplicationUser>(userFollower);
+            if (!res.success) return res;
+            
+            var targetUser = await _unitOfWork.Users.GetByIdAsync(targetUserId);
+            var res2 = await CheckNullObjectAsync<bool,ApplicationUser>(targetUser);
+            if (!res2.success) return res;
+        
+
+            var followExist = await _unitOfWork.Follows.GetAll()
+                .FirstOrDefaultAsync(f => f.FollowedId == targetUserId
+                                          && f.FollowerId == followerId && !f.IsDeleted);
+
+            if (followExist != null)
+            {
+                followExist.IsDeleted = true;
+                await _unitOfWork.SaveAsync();
+
+            }
+
+            transaction.Commit();
+
+            return await ServiceResult<bool>.Success(true);
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return await ServiceResult<bool>.Failure(new List<string>() { "Invalid unfollow operation" });
+        }
     }
 
-    public Task UpdateLastSeenAsync(int userId, DateTime lastSeen)
+    public async Task<ServiceResult<bool>> UpdateLastSeenAsync(int userId)
     {
-        throw new NotImplementedException();
+        var appUser =await _unitOfWork.Users.GetByIdAsync(userId);
+        var res = await CheckNullObjectAsync<bool,ApplicationUser>(appUser);
+        if (!res.success) return res;
+        await using var  transaction = await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            appUser.LastSeen = DateTime.Now;
+            await _unitOfWork.Users.UpdateAsync(appUser);
+            await transaction.CommitAsync();
+            return await ServiceResult<bool>.Success(true);
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return await ServiceResult<bool>.Failure(new List<string>() { "Invalid update operation" });
+        }
+        
     }
 
-    public Task<ServiceResult<ReadUserDTO>> GetUserByIdAsync(int userId)
+    public async Task<ServiceResult<ReadUserDTO>> GetUserByIdAsync(int userId)
     {
-        throw new NotImplementedException();
+        var user = _unitOfWork.Users.GetById(userId);
+        var res = await CheckNullObjectAsync<ReadUserDTO, ApplicationUser>(user);
+        if (!res.success) return res;
+
+        return await ServiceResult<ReadUserDTO>.Success(new ReadUserDTO()
+        {
+            Name = user.Name,
+            Email = user.Email,
+            LastSeen = user.LastSeen,
+            Bio = user.Bio,
+            AvatarPath = user.AvatarPath,
+            followerCount = user.FollowersCount
+        });
     }
 
     public async Task<ServiceResult<ApplicationUser>> GetCurrentUserAsync()
@@ -68,13 +210,61 @@ public class UserService : IUserService
         return await ServiceResult<ApplicationUser>.Success(currentAppUser);
     }
 
-    public Task<ServiceResult<ReadUserDTO>> ResetPassword(string newPassword)
+    public async Task<ServiceResult<bool>> UpdatePassword(int userId, string currentPassword, string updatedPassword)
     {
+        var appUser = await _unitOfWork.Users.GetByIdAsync(userId);
+        var res = await CheckNullObjectAsync<bool, ApplicationUser>(appUser);
+        if (!res.success) return res;
+        
+        var passwordValid = await _userManager.CheckPasswordAsync(appUser, updatedPassword);
+        if (!passwordValid)
+        {
+            var errors = new List<string> { "Invalid Password." };
+            return await ServiceResult<bool>.Failure(errors);
+        }
+        if (currentPassword==updatedPassword)
+        {
+            var errors = new List<string> { "It is the same old password." };
+            return await ServiceResult<bool>.Failure(errors);
+        }
+
+        var result = await _userManager.ChangePasswordAsync(appUser, currentPassword, updatedPassword);
+        if (!result.Succeeded)
+        {
+            var errors = new List<string> { "Cannot Update Current Password." };
+            return await ServiceResult<bool>.Failure(errors);
+        }
+        await _userManager.UpdateAsync(appUser);
+        return await ServiceResult<bool>.Success(true);
+    }
+
+    public async Task<ServiceResult<ReadUserDTO>> ResetEmail(int userId, string updatedEmail)
+    {
+        var userApp =await _unitOfWork.Users.GetByIdAsync(userId);
+        var res = await CheckNullObjectAsync<ReadUserDTO, ApplicationUser>(userApp);
+        if(!res.success) return res;
+
+        //var emailResult = _userManager.GenerateChangeEmailTokenAsync();
+        
+        //
         throw new NotImplementedException();
+
     }
 
     public Task<ServiceResult<ReadUserDTO>> ConfirmEmail()
     {
         throw new NotImplementedException();
+    }
+    
+    
+    // Helper check null object
+    private async Task<ServiceResult<T>> CheckNullObjectAsync<T,Y>(Y obj, string errorMessage = "Not Found")
+    {
+        if (obj == null)
+        {
+            return await ServiceResult<T>.Failure(new List<string>() { errorMessage });
+        }
+    
+        return await ServiceResult<T>.Success();
     }
 }

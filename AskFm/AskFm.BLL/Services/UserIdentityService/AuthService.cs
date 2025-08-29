@@ -168,18 +168,9 @@ public class AuthService : IAuthService
         oldRefreshToken.RevokedOn = DateTime.UtcNow;
 
         await _userManager.UpdateAsync(user);
-
         return await ServiceResult<bool>.Success(true);
 
     }
-
-    public void Logout()
-    {
-        
-
-    }
-
-
     private async Task<ServiceResult<AuthResponseDTO>> GetAuthToken(ApplicationUser user)
     {
         var token = await GenerateJwtToken(user);
