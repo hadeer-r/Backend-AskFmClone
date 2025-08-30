@@ -82,12 +82,39 @@ public class UserTests
     [Fact]
     public async Task UpdatedUser_ThePassedUserIsNull_UpdateFaild()
     {
+        // Act
+        var result = await _userService.UpdateUserAsync(1, null);
         
+        // Assert 
+        Assert.False(result.success);
+        _mockUnitOfWork.Verify((u=>u.Users.GetByIdAsync(It.IsAny<int>())),Times.Never);
+        _mockUnitOfWork.Verify(u => u.Users.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
+        _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Never);
+
     }
     
     [Fact]
     public async Task UpdatedUser_ThePassedUserIsNotFound_UpdateFaild()
     {
+        // Arrange
+        int userId = 1;
+        var updatedUser = new UpdateUserDTO
+        {
+            Name = "John",
+            Bio = "this is John, software engineer.",
+            AvatarPath = "/image.jpg"
+        };
+
+        _mockUnitOfWork.Setup(u => u.Users.GetByIdAsync(userId)).ReturnsAsync((ApplicationUser?)null);
+        
+        // act
+        var result = await _userService.UpdateUserAsync(userId, updatedUser);
+        
+        // Assert
+        Assert.False(result.success);
+        _mockUnitOfWork.Verify((u=>u.Users.GetByIdAsync(It.IsAny<int>())),Times.Once);
+        _mockUnitOfWork.Verify(u => u.Users.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
+        _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Never);
         
     }
 
@@ -97,16 +124,49 @@ public class UserTests
     [Fact]
     public async Task DeleteUserAsync_ThePassedUserNotFound_DeleteFaild()
     {
+        // Arrange 
+        int userId = 1;
+        _mockUnitOfWork.Setup(u=>u.Users.GetByIdAsync(userId)).ReturnsAsync((ApplicationUser?)null);
         
+        // Act
+        var result = await _userService.DeleteUserAsync(userId);
+        // Assert
+        Assert.False(result.success);
+        _mockUnitOfWork.Verify((u=>u.Users.GetByIdAsync(userId)), Times.Once);
+        _mockUnitOfWork.Verify(u => u.Users.RemoveAsync(It.IsAny<ApplicationUser>()), Times.Never);
+        _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Never);
     }   
     [Fact]
     public async Task DeleteUserAsync_FoundedUser_DeleteSuccess()
     {
+        // Arrange
+        int userId = 1;
+        var appUser = new ApplicationUser
+        {
+            Id = userId,
+            Name = "Name",
+            Bio = "Bio",
+            AvatarPath = "/image.jpg"
+        };
         
+        _mockUnitOfWork.Setup(u => u.Users.GetByIdAsync(userId)).ReturnsAsync(appUser);
+        _mockUnitOfWork.Setup(u=>u.Users.RemoveAsync(appUser)).Returns(Task.CompletedTask);
+        _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
+        
+        
+        // Act
+        var result = await _userService.DeleteUserAsync(userId);
+        
+        //
+        Assert.True(result.success);
+        _mockUnitOfWork.Verify(u => u.Users.GetByIdAsync(userId), Times.Once);
+        _mockUnitOfWork.Verify(u=>u.Users.RemoveAsync(appUser),Times.Once);
+        _mockUnitOfWork.Verify((u=>u.SaveAsync()), Times.Once);
+
+
     }
     
 
-    
     
     
 

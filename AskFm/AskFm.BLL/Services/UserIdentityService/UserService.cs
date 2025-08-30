@@ -44,7 +44,7 @@ public class UserService : IUserService
 
     public async Task<ServiceResult<bool>> DeleteUserAsync(int userId)
     {
-        var appUser = _unitOfWork.Users.GetById(userId);
+        var appUser = await _unitOfWork.Users.GetByIdAsync(userId);
         var res = await CheckNullObjectAsync<bool,ApplicationUser>(appUser);
         if (!res.success) return res;
         
