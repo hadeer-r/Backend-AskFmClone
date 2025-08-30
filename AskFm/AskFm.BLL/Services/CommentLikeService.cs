@@ -31,7 +31,11 @@ public class CommentLikeService :  ICommentLikeService
             var comment = await _unitOfWork.Comments.GetByIdAsync(commentId);
             if (comment == null)
             {
-                throw new ArgumentException($"Comment with id {commentId} not found");
+                var errors = new List<String>()
+                {
+                    $"Comment with id {commentId} not found"
+                };
+                return await ServiceResult<IEnumerable<CommentLikeDto>>.Failure(errors);
             }
 
             var likes = await _unitOfWork.CommentLikes.FindAllAsync(
@@ -57,6 +61,7 @@ public class CommentLikeService :  ICommentLikeService
 
     public async Task<ServiceResult<CommentLikeDto>> AddLikeAsync(int commentId, int userId)
     {
+        using var transaction = await _unitOfWork.BeginTransactionAsync();
         try
             {
                 _logger.LogInformation("Adding like for comment id: {CommentId} by user id: {UserId}", 
@@ -70,6 +75,7 @@ public class CommentLikeService :  ICommentLikeService
                     {
                         $"User with id {userId} not found"
                     };
+                    await transaction.RollbackAsync();
                     return await ServiceResult<CommentLikeDto>.Failure(errors);
                 }
                 
@@ -80,6 +86,7 @@ public class CommentLikeService :  ICommentLikeService
                     {
                         $"Comment with id {commentId} not found"
                     };
+                    await transaction.RollbackAsync();
                     return await ServiceResult<CommentLikeDto>.Failure(errors);
                 }
 
@@ -97,14 +104,17 @@ public class CommentLikeService :  ICommentLikeService
                         {
                             "User has already liked this comment"
                         };
+                        await transaction.RollbackAsync();
                         return await ServiceResult<CommentLikeDto>.Failure(errors);
                     }
 
-                    // otherwise , the user liked the commend , then unliked it , and then wants to like it again
+                    // otherwise , the user liked the comment , then unliked it , and then wants to like it again
                     existingLike.IsDeleted = false;
                     comment.LikeCount++;
                     _unitOfWork.Comments.Update(comment);
                     await _unitOfWork.SaveAsync();
+                    await transaction.CommitAsync();
+
                     _logger.LogInformation("Like added successfully for comment id: {CommentId}", commentId);
                     
                     
@@ -131,6 +141,7 @@ public class CommentLikeService :  ICommentLikeService
                 _unitOfWork.Comments.Update(comment);
 
                 await _unitOfWork.SaveAsync();
+                await transaction.CommitAsync();
 
                 _logger.LogInformation("Like added successfully for comment id: {CommentId}", commentId);
                 return await ServiceResult<CommentLikeDto>.Success(new CommentLikeDto
@@ -143,6 +154,7 @@ public class CommentLikeService :  ICommentLikeService
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error adding like for comment id: {CommentId} by user id: {UserId}", 
                     commentId, userId);
                 return await ServiceResult<CommentLikeDto>.Failure(new List<string>(){ex.Message});
@@ -153,6 +165,7 @@ public class CommentLikeService :  ICommentLikeService
 
     public async Task<ServiceResult<CommentLikeDto>> DeleteLikeAsync(int commentId, int userId)
     {
+        var transaction = await _unitOfWork.BeginTransactionAsync();
         try
         {
             _logger.LogInformation("Deleting the comment like from user {userid} on comment id {commentId}", userId, commentId);
@@ -165,6 +178,7 @@ public class CommentLikeService :  ICommentLikeService
                 {
                     "$User didn't like this comment"
                 };
+                await transaction.RollbackAsync();
                 return await ServiceResult<CommentLikeDto>.Failure(errors);
             }
             
@@ -181,6 +195,7 @@ public class CommentLikeService :  ICommentLikeService
                     "User didn't like this comment"
                     
                 };
+                await transaction.RollbackAsync();
                 return await ServiceResult<CommentLikeDto>.Failure(errors);
             }
             
@@ -196,11 +211,12 @@ public class CommentLikeService :  ICommentLikeService
             _unitOfWork.Comments.Update(comment);
             
             await _unitOfWork.SaveAsync();
-            
+            await transaction.CommitAsync();
             return await ServiceResult<CommentLikeDto>.Success();
         }
         catch (Exception e)
         {
+            await transaction.RollbackAsync();
             _logger.LogError(e, "Failed to delete like by user {UserId} on comment {CommentId}", userId, commentId);
             return await ServiceResult<CommentLikeDto>.Failure(new List<string>(){e.Message});
         }

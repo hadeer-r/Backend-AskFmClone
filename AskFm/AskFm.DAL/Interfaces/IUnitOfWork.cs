@@ -1,4 +1,5 @@
 using AskFm.DAL.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 using Thread = AskFm.DAL.Models.Thread;
 
 namespace AskFm.DAL.Interfaces;
@@ -16,5 +17,6 @@ public interface IUnitOfWork : IDisposable
     
     int Save();
     Task<int> SaveAsync();
-    
+
+    Task<IDbContextTransaction> BeginTransactionAsync();
 }

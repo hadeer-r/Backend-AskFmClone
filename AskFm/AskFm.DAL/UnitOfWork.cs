@@ -1,6 +1,7 @@
 using AskFm.DAL.Interfaces;
 using AskFm.DAL.Models;
 using AskFm.DAL.Repositories;
+using Microsoft.EntityFrameworkCore.Storage;
 using Thread = AskFm.DAL.Models.Thread;
 
 namespace AskFm.DAL;
@@ -134,4 +135,10 @@ public class UnitOfWork : IUnitOfWork
     {
         return _context.SaveChangesAsync();
     }
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync()
+    {
+        return await _context.Database.BeginTransactionAsync();
+    }
+    
 }
