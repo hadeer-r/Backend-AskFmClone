@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Linq.Expressions;
 using AskFm.BLL.DTO;
+using AskFm.DAL;
+using Microsoft.EntityFrameworkCore.Storage;
 
 
 namespace Tests;
@@ -18,6 +20,7 @@ public class CommentLikeServiceTest
     private readonly Mock<IRepository<ApplicationUser>> _mockUserRepository;
     private readonly Mock<IRepository<CommentLike>> _mockCommentLikeRepository;
     private readonly CommentLikeService _commentLikeService;
+    private readonly Mock<IDbContextTransaction> _mockTransaction;
     
     public CommentLikeServiceTest()
     {
@@ -26,9 +29,12 @@ public class CommentLikeServiceTest
         _mockCommentLikeRepository = new Mock<IRepository<CommentLike>>();
         _mockUserRepository = new Mock<IRepository<ApplicationUser>>();
         _loggerMock = new Mock<ILogger<CommentLikeService>>();
+        _mockTransaction = new Mock<IDbContextTransaction>();
         _mockUnitOfWork.Setup(uow => uow.Comments).Returns(_mockCommentRepository.Object);
         _mockUnitOfWork.Setup(uow => uow.CommentLikes).Returns(_mockCommentLikeRepository.Object);
         _mockUnitOfWork.Setup(uow => uow.Users).Returns(_mockUserRepository.Object);
+        _mockUnitOfWork.Setup(uow => uow.BeginTransactionAsync()).ReturnsAsync(_mockTransaction.Object);
+
         
         
         _commentLikeService = new CommentLikeService(_mockUnitOfWork.Object,  _loggerMock.Object);
@@ -40,6 +46,7 @@ public class CommentLikeServiceTest
         // Arrange 
         var commentId = 1;
         var userId = 5;
+        var mockTransaction = new Mock<IDbContextTransaction>();
         
         var comment = new Comment 
         { 
@@ -57,7 +64,8 @@ public class CommentLikeServiceTest
         
         _mockCommentRepository.Setup(repo => repo.GetByIdAsync(commentId))
             .ReturnsAsync(comment);
-
+        
+        
         _mockUserRepository.Setup(repo => repo.GetByIdAsync(userId))
             .ReturnsAsync(user);
         
