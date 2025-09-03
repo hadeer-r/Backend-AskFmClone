@@ -1,4 +1,5 @@
 using System.Text;
+using AskFm.BLL.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using AskFm.DAL;
@@ -44,6 +45,8 @@ public class Program
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
+        builder.Services.AddScoped<ICommentService, CommentService>();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
