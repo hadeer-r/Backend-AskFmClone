@@ -48,11 +48,11 @@ public class AuthController : ControllerBase
         if (!result.success)
         {
             return BadRequest(result.Errors);
+
         }
-        if (!string.IsNullOrEmpty(result.Data.Token))
-        {
-            setRefreshToken(result.Data.RefreshToken.Token,result.Data.RefreshToken.ExpireOn);
-        }
+
+        setRefreshToken(result.Data.RefreshToken.Token,result.Data.RefreshToken.ExpireOn);
+
         return Ok(result);
     }
 
@@ -72,9 +72,8 @@ public class AuthController : ControllerBase
         {
             return BadRequest(result.Errors);
         }
-
+        setRefreshToken(result.Data.RefreshToken.Token,result.Data.RefreshToken.ExpireOn);
         return Ok(result);
-
     }
     
     [HttpPost("logout/{id}")]

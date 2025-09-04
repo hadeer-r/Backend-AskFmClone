@@ -131,9 +131,9 @@ public class UnitOfWork : IUnitOfWork
         return _context.SaveChanges();
     }
 
-    public Task<int> SaveAsync()
+    public async Task<int> SaveAsync()
     {
-        return _context.SaveChangesAsync();
+        return await _context.SaveChangesAsync();
     }
 
     public async Task<IDbContextTransaction> BeginTransactionAsync()

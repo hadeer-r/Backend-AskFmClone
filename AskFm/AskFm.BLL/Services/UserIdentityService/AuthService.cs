@@ -40,8 +40,18 @@ public class AuthService : IAuthService
         }
 
         var getUser = await _userManager.FindByEmailAsync(request.Email);
+        
 
         if (getUser == null)
+        {
+            var erros = new List<string>
+            {
+                "Invalid Email or Password."
+            };
+            return await ServiceResult<AuthResponseDTO>.Failure(erros);
+        }
+
+        if (getUser.IsDeleted)
         {
             var erros = new List<string>
             {
@@ -62,7 +72,6 @@ public class AuthService : IAuthService
 
     }
     
-
     public async Task<ServiceResult<AuthResponseDTO>> RegisterAsync(RegisterUserDTO request)
     {
         if (request == null)
@@ -71,7 +80,7 @@ public class AuthService : IAuthService
             return await ServiceResult<AuthResponseDTO>.Failure(errors);
         }
         var oldUser = _userManager.FindByEmailAsync(request.Email).Result;
-        if (oldUser != null)
+        if (oldUser != null && oldUser.IsDeleted )
         {
             var errors = new List<string>{ "Email already exist" };
             return await ServiceResult<AuthResponseDTO>.Failure(errors);
@@ -168,18 +177,9 @@ public class AuthService : IAuthService
         oldRefreshToken.RevokedOn = DateTime.UtcNow;
 
         await _userManager.UpdateAsync(user);
-
         return await ServiceResult<bool>.Success(true);
 
     }
-
-    public void Logout()
-    {
-        
-
-    }
-
-
     private async Task<ServiceResult<AuthResponseDTO>> GetAuthToken(ApplicationUser user)
     {
         var token = await GenerateJwtToken(user);
