@@ -157,8 +157,8 @@ public class UserController : ControllerBase
     // Helper functions
     private async Task<bool> _checkCurrentUser(int userId)
     {
-        var current_user = _userService.GetCurrentUserAsync();
-        return current_user.Id == userId;
+        var current_user = await _userService.GetCurrentUserAsync();
+        return current_user.Data.Id == userId;
     }
 
     
