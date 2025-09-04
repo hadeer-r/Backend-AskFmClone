@@ -210,25 +210,27 @@ public class UserService : IUserService
         return await ServiceResult<ApplicationUser>.Success(currentAppUser);
     }
 
-    public async Task<ServiceResult<bool>> UpdatePassword(int userId, string currentPassword, string updatedPassword)
+    public async Task<ServiceResult<bool>> UpdatePassword(int userId, UpdatePasswordDTO updatePasswordDto)
     {
+        var nullPassRes = await CheckNullObjectAsync<bool, UpdatePasswordDTO>(updatePasswordDto);
+        if(!nullPassRes.success) return nullPassRes;
         var appUser = await _unitOfWork.Users.GetByIdAsync(userId);
         var res = await CheckNullObjectAsync<bool, ApplicationUser>(appUser);
         if (!res.success) return res;
         
-        var passwordValid = await _userManager.CheckPasswordAsync(appUser, updatedPassword);
+        var passwordValid = await _userManager.CheckPasswordAsync(appUser, updatePasswordDto.CurrentPassword);
         if (!passwordValid)
         {
             var errors = new List<string> { "Invalid Password." };
             return await ServiceResult<bool>.Failure(errors);
         }
-        if (currentPassword==updatedPassword)
+        if (updatePasswordDto.CurrentPassword==updatePasswordDto.UpdatedPassword)
         {
             var errors = new List<string> { "It is the same old password." };
             return await ServiceResult<bool>.Failure(errors);
         }
 
-        var result = await _userManager.ChangePasswordAsync(appUser, currentPassword, updatedPassword);
+        var result = await _userManager.ChangePasswordAsync(appUser, updatePasswordDto.CurrentPassword, updatePasswordDto.UpdatedPassword);
         if (!result.Succeeded)
         {
             var errors = new List<string> { "Cannot Update Current Password." };

@@ -12,7 +12,7 @@ public interface IUserService
     Task<ServiceResult<bool>> UpdateLastSeenAsync(int userId);
     Task<ServiceResult<ReadUserDTO>> GetUserByIdAsync(int userId);
     Task<ServiceResult<ApplicationUser>> GetCurrentUserAsync();
-    Task<ServiceResult<bool>> UpdatePassword(int userId, string currentPassword, string updatedPassword);
+    Task<ServiceResult<bool>> UpdatePassword(int userId, UpdatePasswordDTO updatePasswordDto);
     Task<ServiceResult<ReadUserDTO>> ResetEmail(int userId, string updatedEmail);
     Task<ServiceResult<ReadUserDTO>> ConfirmEmail();
     

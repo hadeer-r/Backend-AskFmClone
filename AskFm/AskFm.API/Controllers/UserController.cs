@@ -136,13 +136,14 @@ public class UserController : ControllerBase
     
     [HttpPost]
     [Route("profile/update/pass/{userId}")]
-    public async Task<IActionResult> UpdatePassword(int userId, string currentPassword, string updatedPassword)
+    public async Task<IActionResult> UpdatePassword(int userId, UpdatePasswordDTO udpatePasswordDto)
     {
         if (await _checkCurrentUser(userId))
         {
             return Forbid("Cannot update password for another user");
         }
-        var result = await _userService.UpdatePassword(userId, currentPassword, updatedPassword);
+        
+        var result = await _userService.UpdatePassword(userId, udpatePasswordDto);
         if (!result.success)
         {
             return BadRequest(result.Errors);
