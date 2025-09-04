@@ -22,19 +22,6 @@ public class UserController : ControllerBase
         _authService = authService;
         _userService = userService;
     }
-    [HttpGet]
-    [Route("GetAllUsers")]
-    public async Task<IActionResult> GetUsers()
-    {
-        var result = _unitOfWork.Users.GetAll().Select(u => new
-        {
-            name = u.Name,
-            email = u.Email,
-            username = u.UserName,
-            bio = u.Bio,
-        }).ToList();
-        return Ok(result);
-    }
 
     [HttpGet]
     [Route("profile")]
@@ -151,7 +138,7 @@ public class UserController : ControllerBase
     {
         if (await _checkCurrentUser(userId))
         {
-            return Forbid("Cannot unFollow the current user");
+            return Forbid("Cannot update password for another user");
         }
         var result = await _userService.UpdatePassword(userId, currentPassword, updatedPassword);
         if (!result.success)
@@ -168,11 +155,11 @@ public class UserController : ControllerBase
     private async Task<bool> _checkCurrentUser(int userId)
     {
         var current_user = _userService.GetCurrentUserAsync();
-        return current_user.Id != userId;
+        return current_user.Id == userId;
     }
 
     
-    /*
+    /* TODO 
     update email
     confirm email
     check user not deleted in login
