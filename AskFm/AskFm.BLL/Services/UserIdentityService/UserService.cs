@@ -172,6 +172,7 @@ public class UserService : IUserService
         {
             appUser.LastSeen = DateTime.Now;
             await _unitOfWork.Users.UpdateAsync(appUser);
+            await _unitOfWork.SaveAsync();
             await transaction.CommitAsync();
             return await ServiceResult<bool>.Success(true);
         }
