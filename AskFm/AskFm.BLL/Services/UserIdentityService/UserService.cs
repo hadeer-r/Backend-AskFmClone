@@ -65,12 +65,12 @@ public class UserService : IUserService
         try
         {
             var userFollower = await _unitOfWork.Users.GetByIdAsync(followerId);
-            var res = await CheckNullObjectAsync<bool,ApplicationUser>(userFollower);
-            if (!res.success) return res;
+            var userFollowerNullRes = await CheckNullObjectAsync<bool,ApplicationUser>(userFollower);
+            if (!userFollowerNullRes.success) return userFollowerNullRes;
             
             var targetUser = await _unitOfWork.Users.GetByIdAsync(targetUserId);
-            var res2 = await CheckNullObjectAsync<bool,ApplicationUser>(targetUser);
-            if (!res2.success) return res;
+            var targetUserNullRes = await CheckNullObjectAsync<bool,ApplicationUser>(targetUser);
+            if (!targetUserNullRes.success) return targetUserNullRes;
 
             var followExist = await _unitOfWork.Follows.GetAll()
                 .FirstOrDefaultAsync(f => f.FollowedId == targetUserId 
@@ -126,12 +126,12 @@ public class UserService : IUserService
         try
         {
             var userFollower = await _unitOfWork.Users.GetByIdAsync(followerId);
-            var res = await CheckNullObjectAsync<bool,ApplicationUser>(userFollower);
-            if (!res.success) return res;
+            var userFollowerNullRes = await CheckNullObjectAsync<bool,ApplicationUser>(userFollower);
+            if (!userFollowerNullRes.success) return userFollowerNullRes;
             
             var targetUser = await _unitOfWork.Users.GetByIdAsync(targetUserId);
-            var res2 = await CheckNullObjectAsync<bool,ApplicationUser>(targetUser);
-            if (!res2.success) return res;
+            var targetUserNullRes = await CheckNullObjectAsync<bool,ApplicationUser>(targetUser);
+            if (!targetUserNullRes.success) return targetUserNullRes;
         
 
             var followExist = await _unitOfWork.Follows.GetAll()
