@@ -186,7 +186,7 @@ public class UserService : IUserService
 
     public async Task<ServiceResult<ReadUserDTO>> GetUserByIdAsync(int userId)
     {
-        var user = _unitOfWork.Users.GetById(userId);
+        var user = await _unitOfWork.Users.GetByIdAsync(userId);
         var res = await CheckNullObjectAsync<ReadUserDTO, ApplicationUser>(user);
         if (!res.success) return res;
 
