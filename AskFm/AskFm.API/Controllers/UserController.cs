@@ -70,7 +70,9 @@ public class UserController : ControllerBase
         {
             return BadRequest(result.Errors);
         }
-        return RedirectToAction("GetUserAsync", new { userId = userId });
+
+        var userRead = await _userService.GetUserByIdAsync(userId);
+        return Ok(userRead);
     }
     
     [HttpDelete]
