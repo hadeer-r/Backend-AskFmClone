@@ -167,8 +167,11 @@ public class UserTests
     }
     
 
-    
-    
+    /// <summary>
+    ///  Follow 6, search how to test transactions
+    /// </summary>
+    /// <returns></returns>
+    /// 
 
     // helper functions
     private Mock<UserManager<ApplicationUser>> GetMockUserManager()
