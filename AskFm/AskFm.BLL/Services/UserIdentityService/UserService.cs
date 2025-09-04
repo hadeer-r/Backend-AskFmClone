@@ -141,8 +141,14 @@ public class UserService : IUserService
             if (followExist != null)
             {
                 followExist.IsDeleted = true;
+                followExist.IsDeleted = true;
+                followExist.IsActive = false;
+                if (userFollower.FollowingCount > 0) userFollower.FollowingCount--;
+                if (targetUser.FollowersCount > 0)   targetUser.FollowersCount--;
+                await _unitOfWork.Follows.UpdateAsync(followExist);
+                await _unitOfWork.Users.UpdateAsync(userFollower);
+                await _unitOfWork.Users.UpdateAsync(targetUser);
                 await _unitOfWork.SaveAsync();
-
             }
 
             transaction.Commit();
