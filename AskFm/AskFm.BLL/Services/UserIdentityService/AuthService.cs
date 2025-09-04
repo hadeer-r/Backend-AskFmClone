@@ -80,7 +80,7 @@ public class AuthService : IAuthService
             return await ServiceResult<AuthResponseDTO>.Failure(errors);
         }
         var oldUser = _userManager.FindByEmailAsync(request.Email).Result;
-        if (oldUser != null)
+        if (oldUser != null && oldUser.IsDeleted )
         {
             var errors = new List<string>{ "Email already exist" };
             return await ServiceResult<AuthResponseDTO>.Failure(errors);

@@ -63,7 +63,7 @@ public class UserController : ControllerBase
     {
         if (!await _checkCurrentUser(userId))
         {
-            return Forbid("Cannot Update this user");
+            return StatusCode(StatusCodes.Status403Forbidden, "Cannot Update this user");
         }
         var result = await _userService.UpdateUserAsync(userId, updatedUser);
         if (!result.success)
@@ -81,7 +81,7 @@ public class UserController : ControllerBase
     {
         if (!await _checkCurrentUser(userId))
         {
-            return Forbid("Cannot Remove this user");
+            return StatusCode(StatusCodes.Status403Forbidden, "Cannot Remove this user");
         }
         var result = await _userService.DeleteUserAsync(userId);
         
@@ -98,11 +98,11 @@ public class UserController : ControllerBase
     {
         if (await _checkCurrentUser(targetUserId))
         {
-            return Forbid("Cannot Follow the current user");
+            return StatusCode(StatusCodes.Status403Forbidden, "Cannot Follow this user");
         }
         if (!await _checkCurrentUser(followerId))
         {
-            return Forbid("User can't perform this follow");
+            return StatusCode(StatusCodes.Status403Forbidden, "User can't perform this follow");
         }
 
         var result = await _userService.FollowUserAsync(followerId, targetUserId);
@@ -119,11 +119,11 @@ public class UserController : ControllerBase
     {
         if (await _checkCurrentUser(targetUserId))
         {
-            return Forbid("Cannot unFollow the current user");
+            return StatusCode(StatusCodes.Status403Forbidden, "Cannot Unfollow the current user");
         }
         if (!await _checkCurrentUser(followerId))
         {
-            return Forbid("User can't perform this unfollow");
+            return StatusCode(StatusCodes.Status403Forbidden, "User can't perform this unfollow");
         }
 
         var result = await _userService.UnfollowUserAsync(followerId, targetUserId);
@@ -140,10 +140,11 @@ public class UserController : ControllerBase
     {
         if (await _checkCurrentUser(userId))
         {
-            return Forbid("Cannot update password for another user");
+            
+            return StatusCode(StatusCodes.Status403Forbidden, "Invalid Operation");
         }
-        
         var result = await _userService.UpdatePassword(userId, udpatePasswordDto);
+
         if (!result.success)
         {
             return BadRequest(result.Errors);
