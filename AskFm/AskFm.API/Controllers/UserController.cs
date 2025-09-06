@@ -72,7 +72,7 @@ public class UserController : ControllerBase
         }
 
         var userRead = await _userService.GetUserByIdAsync(userId);
-        return Ok(userRead);
+        return Ok(userRead.Data);
     }
     
     [HttpDelete]
