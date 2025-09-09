@@ -56,7 +56,7 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost]
+    [HttpGet]
     [Route("refresh-token/{id}")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<IActionResult> RefreshToken(int id)
