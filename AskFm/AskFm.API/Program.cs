@@ -150,6 +150,16 @@ public class Program
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
+        
+        
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = builder.Configuration.GetConnectionString("Redis");
+            options.InstanceName = "AskFmCache";
+        });
+        
+        builder.Services.AddSingleton<RedisCacheService>();
+
             
         var app = builder.Build();
 
