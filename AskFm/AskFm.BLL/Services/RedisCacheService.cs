@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace AskFm.BLL.Services;
 
-public class RedisCacheService
+public class RedisCacheService : IRedisService
 {
     private readonly IDistributedCache _cache;
 
