@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using AskFm.BLL.DTO;
 using AskFm.BLL.DTO.UserDTOs;
 using AskFm.DAL;
 using AskFm.DAL.Interfaces;
@@ -10,9 +11,10 @@ using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Server.HttpSys;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-
+using Shared;
 namespace AskFm.BLL.Services.UserIdentityService;
 
 public class AuthService : IAuthService
@@ -20,11 +22,15 @@ public class AuthService : IAuthService
     private IUnitOfWork _unitOfWork;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly JwtOptions _jwtOptions;
+    private readonly RedisCacheService _redisCacheService;
+    private readonly IConfiguration _configuration;
 
-    public AuthService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions)
+    public AuthService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IOptions<JwtOptions> jwtOptions, RedisCacheService redisCacheService, IConfiguration configuration)
     {
         _unitOfWork = unitOfWork;
         _userManager = userManager;
+        _redisCacheService = redisCacheService;
+        _configuration = configuration;
         _jwtOptions = jwtOptions.Value;
     }
 
@@ -80,7 +86,7 @@ public class AuthService : IAuthService
             return await ServiceResult<AuthResponseDTO>.Failure(errors);
         }
         var oldUser = _userManager.FindByEmailAsync(request.Email).Result;
-        if (oldUser != null && oldUser.IsDeleted )
+        if (oldUser != null && oldUser.IsDeleted)
         {
             var errors = new List<string>{ "Email already exist" };
             return await ServiceResult<AuthResponseDTO>.Failure(errors);
@@ -113,7 +119,7 @@ public class AuthService : IAuthService
 
     public async Task<ServiceResult<AuthResponseDTO>> RefreshTokenAsync(int id, string refreshToken)
     {
-        if (refreshToken == null)
+        if (string.IsNullOrEmpty(refreshToken))
         {
             var errors = new List<string> { "Invalid Token." };
             return await ServiceResult<AuthResponseDTO>.Failure(errors);
@@ -125,23 +131,17 @@ public class AuthService : IAuthService
             var errors = new List<string> { "Invalid User." };
             return await ServiceResult<AuthResponseDTO>.Failure(errors);
         }
-        if (!user.RefreshTokens.Any(r => r.Token == refreshToken))
+
+        var oldRefreshToken = await _redisCacheService.GetCacheAsync<RefreshTokenDto>(AppConstants.UserRefreshTokenCacheKey(user.Id));
+        if (oldRefreshToken == null 
+            || oldRefreshToken.IsExpired 
+            || oldRefreshToken.Token != refreshToken)
         {
             var errors = new List<string> { "Invalid Token." };
             return await ServiceResult<AuthResponseDTO>.Failure(errors);
         }
-        
-        var oldRefreshToken = user.RefreshTokens.Single(t => t.Token == refreshToken);
-        if (!oldRefreshToken.IsActive)
-        {
-            var errors = new List<string> { "InActive Token." };
-            return await ServiceResult<AuthResponseDTO>.Failure(errors);
-        }
-
-        oldRefreshToken.RevokedOn = DateTime.UtcNow;
-
+        await _redisCacheService.RemoveCacheAsync(AppConstants.UserRefreshTokenCacheKey(user.Id));
         return await GetAuthToken(user);
-
     }
 
     
@@ -153,57 +153,67 @@ public class AuthService : IAuthService
             return await ServiceResult<bool>.Failure(errors);
         }
 
-        var user = _unitOfWork.Users.GetById(id);
+        var user = await _unitOfWork.Users.GetByIdAsync(id);
         if (user == null)
         {
             var errors = new List<string> { "Invalid User." };
             return await ServiceResult<bool>.Failure(errors);
         }
         
-        if (!user.RefreshTokens.Any(r => r.Token == refreshToken))
+        var userRefreshToken = await _redisCacheService.GetCacheAsync<RefreshTokenDto>(AppConstants.UserRefreshTokenCacheKey(user.Id));
+        if (userRefreshToken == null || userRefreshToken.IsExpired)
         {
             var errors = new List<string> { "Invalid Token." };
             return await ServiceResult<bool>.Failure(errors);
         }
-        
-        var oldRefreshToken = user.RefreshTokens.Single(t => t.Token == refreshToken);
-        
-        if (!oldRefreshToken.IsActive)
-        {
-            var errors = new List<string> { "InActive Token." };
-            return await ServiceResult<bool>.Failure(errors);
-        }
 
-        oldRefreshToken.RevokedOn = DateTime.UtcNow;
-
-        await _userManager.UpdateAsync(user);
+        await _redisCacheService.RemoveCacheAsync(AppConstants.UserRefreshTokenCacheKey(user.Id));
         return await ServiceResult<bool>.Success(true);
 
     }
+
+    public async Task<ServiceResult<bool>> Logout(int userId, string refreshToken)
+    {
+        var result = await RevokeRefreshTokenAsync(userId, refreshToken);
+        if (!result.success)
+        {
+            return result;
+        }
+        await RevokeJwtToken(userId);
+        return await ServiceResult<bool>.Success(true);
+    }
+
     private async Task<ServiceResult<AuthResponseDTO>> GetAuthToken(ApplicationUser user)
     {
-        var token = await GenerateJwtToken(user);
+        // Generate New JWT Token
+        string newTokenId = Guid.NewGuid().ToString();
+        var token = await GenerateJwtToken(user, newTokenId);
         if (string.IsNullOrEmpty(token))
         {
             var errors = new List<string> { "Invalid Data" };
             return await ServiceResult<AuthResponseDTO>.Failure(errors);
         }
-
-        RefreshToken refreshToken = null;
-        if (user.RefreshTokens !=null  && user.RefreshTokens.Any(r => r.IsActive))
+        var oldJwtId = await _redisCacheService.GetCacheAsync<string>(AppConstants.UserJwtCacheKey(user.Id));
+        if (!string.IsNullOrEmpty(oldJwtId))
         {
-            refreshToken = user.RefreshTokens.FirstOrDefault(r => r.IsActive);
-        }
-        else
-        {
-            refreshToken = await generateRefreshToken();
-            user.RefreshTokens ??= new List<RefreshToken>();
-            user.RefreshTokens.Add(refreshToken);
+            await _redisCacheService.RemoveCacheAsync(AppConstants.JwtCacheKey(oldJwtId));
+            await _redisCacheService.RemoveCacheAsync(AppConstants.UserJwtCacheKey(user.Id));
         }
         
-        user.LastSeen = DateTime.UtcNow;
-        await _userManager.UpdateAsync(user);
-
+        await _redisCacheService.SetCacheAsync<int>(AppConstants.JwtCacheKey(newTokenId), user.Id, TimeSpan.FromMinutes(_jwtOptions.AccessExpiration));
+        await _redisCacheService.SetCacheAsync<string>(AppConstants.UserJwtCacheKey(user.Id),newTokenId, TimeSpan.FromMinutes(_jwtOptions.AccessExpiration));
+        
+        //----------------------------------
+        // Use the exist refreshToken or regenerate one
+        
+        var refreshToken = await _redisCacheService.GetCacheAsync<RefreshTokenDto>(AppConstants.UserRefreshTokenCacheKey(user.Id));
+        if (refreshToken == null)
+        {
+            refreshToken = await generateRefreshToken();
+            await _redisCacheService.SetCacheAsync<RefreshTokenDto>(AppConstants.UserRefreshTokenCacheKey(user.Id),
+                refreshToken, TimeSpan.FromDays(refreshToken.ExpireAfter));
+        }
+        
         return await ServiceResult<AuthResponseDTO>.Success(new AuthResponseDTO()
         {
             Token = token,
@@ -220,7 +230,7 @@ public class AuthService : IAuthService
             }
         });
     }
-    private async Task<RefreshToken> generateRefreshToken()
+    private async Task<RefreshTokenDto> generateRefreshToken()
     {
         var randomNumber = new byte[32];
 
@@ -228,15 +238,16 @@ public class AuthService : IAuthService
 
         generator.GetBytes(randomNumber);
 
-        return new RefreshToken
+        return new RefreshTokenDto
         {
             Token = Convert.ToBase64String(randomNumber),
-            ExpireOn = DateTime.UtcNow.AddDays(10),
-            CreatedOn = DateTime.UtcNow
+            ExpireOn = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("ExpireTimes:Refresh_Token_Exp")),
+            CreatedOn = DateTime.UtcNow,
+            ExpireAfter = _configuration.GetValue<int>("ExpireTimes:Refresh_Token_Exp")
         };
 
     }
-    private Task<string> GenerateJwtToken(ApplicationUser appUser)
+    private Task<string> GenerateJwtToken(ApplicationUser appUser, string jti)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var tokenDescriptor = new SecurityTokenDescriptor(){
@@ -248,12 +259,22 @@ public class AuthService : IAuthService
             {
                 new(ClaimTypes.Name, appUser.Name),
                 new(ClaimTypes.Email, appUser.Email),
-                new("UserId", appUser.Id.ToString())
+                new("UserId", appUser.Id.ToString()),
+                new("jti",jti)
             })
         };
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);
         var accessToken = tokenHandler.WriteToken(securityToken);
         return Task.FromResult(accessToken);
+    }
+
+    private async Task RevokeJwtToken(int userId)
+    {
+        var oldJwtId = await _redisCacheService.GetCacheAsync<string>(AppConstants.UserJwtCacheKey(userId));
+        if (string.IsNullOrEmpty(oldJwtId)) return;
+        await _redisCacheService.RemoveCacheAsync(AppConstants.JwtCacheKey(oldJwtId));
+        await _redisCacheService.RemoveCacheAsync(AppConstants.UserJwtCacheKey(userId));
+        
     }
 }
 

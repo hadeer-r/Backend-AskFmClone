@@ -10,4 +10,5 @@ public interface IAuthService
     public Task<ServiceResult<AuthResponseDTO>> RegisterAsync(RegisterUserDTO request);
     Task<ServiceResult<AuthResponseDTO>> RefreshTokenAsync(int id, string refreshToken);
     public Task<ServiceResult<bool>> RevokeRefreshTokenAsync(int id, string refreshToken);
+    public Task<ServiceResult<bool>> Logout(int userId, string refreshToken);
 }

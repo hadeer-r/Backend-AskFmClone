@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using AskFm.BLL.Services.UserIdentityService;
 using Castle.Components.DictionaryAdapter.Xml;
+using Shared;
 
 namespace AskFm.API;
 
@@ -51,7 +52,6 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(setup =>
         {
-            // Include 'SecurityScheme' to use JWT Authentication
             var jwtSecurityScheme = new OpenApiSecurityScheme
             {
                 BearerFormat = "JWT",
@@ -83,8 +83,8 @@ public class Program
             Issuer = Environment.GetEnvironmentVariable("ISSUER"),
             Audience = Environment.GetEnvironmentVariable("AUDIENCE"),
             SigningKey = Environment.GetEnvironmentVariable("SIGNINGKEY"),
-            AccessExpiration = int.Parse(Environment.GetEnvironmentVariable("TOKEN_EXP")),
-            AccessRefreshTokenExpiration = int.Parse(Environment.GetEnvironmentVariable("REFRESH_TOKEN_EXP")),
+            AccessExpiration = builder.Configuration.GetValue<int>("ExpireTimes:Jwt_Token_Exp"),
+            AccessRefreshTokenExpiration =builder.Configuration.GetValue<int>("ExpireTimes:Refresh_Token_Exp")
         };
         if (jwtOptions == null)
         {
@@ -96,14 +96,15 @@ public class Program
             Options.Issuer = Environment.GetEnvironmentVariable("ISSUER");
             Options.Audience = Environment.GetEnvironmentVariable("AUDIENCE");
             Options.SigningKey = Environment.GetEnvironmentVariable("SIGNINGKEY");
-            Options.AccessExpiration = int.Parse(Environment.GetEnvironmentVariable("TOKEN_EXP"));
-            Options.AccessRefreshTokenExpiration = int.Parse(Environment.GetEnvironmentVariable("REFRESH_TOKEN_EXP"));
+            Options.AccessExpiration = builder.Configuration.GetValue<int>("ExpireTimes:Jwt_Token_Exp");
+            Options.AccessRefreshTokenExpiration = builder.Configuration.GetValue<int>("ExpireTimes:Refresh_Token_Exp");
         });
         
         builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = "Bearer";
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                
                 
             })
             .AddJwtBearer( Options =>
@@ -119,6 +120,21 @@ public class Program
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
                     ClockSkew = TimeSpan.FromMinutes(0)
                 };
+                Options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var jti = context.Principal.Claims.FirstOrDefault(c => c.Type == "jti")?.Value;
+                        var redis = context.HttpContext.RequestServices.GetRequiredService<RedisCacheService>();
+
+                        var cachedToken = await redis.GetCacheAsync<int>(AppConstants.JwtCacheKey(jti));
+                        if (cachedToken <= 0)
+                        {
+                            context.Fail("Token revoked or expired");
+                        }
+                    }
+                };
+
 
             });
         builder.Services.AddAuthorization();
@@ -174,7 +190,6 @@ public class Program
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
-        
 
         app.MapControllers();
 
