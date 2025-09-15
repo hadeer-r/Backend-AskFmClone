@@ -14,17 +14,11 @@ public interface IUserService
     Task<ServiceResult<ApplicationUser>> GetCurrentUserAsync();
     Task<ServiceResult<bool>> UpdatePassword(int userId, UpdatePasswordDTO updatePasswordDto);
     Task<ServiceResult<ReadUserDTO>> ResetEmail(int userId, string updatedEmail);
-    Task<ServiceResult<ReadUserDTO>> ConfirmEmail();
     
     
     /*
 GET Users only for now
- getUserbyId
- EditUser
- DeleteUser
- FollowUser
- unfollowUser
- reset password
+
  confirm email
  Helper Function: getCurrentUserId
 */   

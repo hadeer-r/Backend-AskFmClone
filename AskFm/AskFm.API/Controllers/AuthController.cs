@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using AskFm.BLL.DTO.UserDTOs;
 using AskFm.BLL.Services;
 using AskFm.BLL.Services.UserIdentityService;
@@ -102,7 +103,40 @@ public class AuthController : ControllerBase
         
         return Ok(result);
     }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [Route("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
+    {
+
+        var result = await _authService.ForgotPasswordAsync(forgotPasswordDto.Email);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok("Check Your Email");
+    }
     
+    [HttpPost]
+    [AllowAnonymous]
+    [Route("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
+    {
+        if (resetPasswordDto == null)
+        {
+            return BadRequest("Invalid Data");
+        }
+
+        var result = await _authService.ResetPasswordAsync(resetPasswordDto);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        
+        return Ok("Password Reset Success");
+    }
     private void setRefreshToken(string refreshToken,DateTime expires)
     {
         var cookieOption = new CookieOptions()

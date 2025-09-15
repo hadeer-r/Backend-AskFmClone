@@ -14,7 +14,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using AskFm.BLL.Services.UserIdentityService;
 using Castle.Components.DictionaryAdapter.Xml;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Shared;
+using IEmailSender = AskFm.BLL.Services.IEmailSender;
 
 namespace AskFm.API;
 
@@ -28,7 +30,6 @@ public class Program
         // Add services to the container.
 
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
         Env.Load();
@@ -37,19 +38,25 @@ public class Program
         {
             throw new Exception("Connection string is null");
         }
+
+        builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddHttpContextAccessor();
+        // DbContext
         builder.Services.AddDbContext<AppDbContext>(options =>
             options
                 .UseLazyLoadingProxies()
                 .UseSqlServer(ConnectionString));
-        
+        // -------------------------------------------------        
+        // Register the repositories and services
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
         builder.Services.AddScoped<ICommentService, CommentService>();
+        builder.Services.AddScoped<IEmailSender,EmailSender>();
         builder.Services.AddControllers();
-        builder.Services.AddEndpointsApiExplorer();
+
+        // Configure Swagger with JWT Authentication
         builder.Services.AddSwaggerGen(setup =>
         {
             var jwtSecurityScheme = new OpenApiSecurityScheme
@@ -78,6 +85,8 @@ public class Program
         });
         
 
+        // Authentication & Authorization
+
         JwtOptions jwtOptions = new JwtOptions
         {
             Issuer = Environment.GetEnvironmentVariable("ISSUER"),
@@ -99,7 +108,8 @@ public class Program
             Options.AccessExpiration = builder.Configuration.GetValue<int>("ExpireTimes:Jwt_Token_Exp");
             Options.AccessRefreshTokenExpiration = builder.Configuration.GetValue<int>("ExpireTimes:Refresh_Token_Exp");
         });
-        
+        builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(2));
+
         builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = "Bearer";
@@ -138,6 +148,9 @@ public class Program
 
             });
         builder.Services.AddAuthorization();
+       
+       
+       // Identity
         builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
             {
                 //password configuration
@@ -167,7 +180,7 @@ public class Program
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
         
-        
+        // Redis Cache
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = builder.Configuration.GetConnectionString("Redis");
@@ -175,8 +188,7 @@ public class Program
         });
         
         builder.Services.AddSingleton<RedisCacheService>();
-
-            
+ 
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
