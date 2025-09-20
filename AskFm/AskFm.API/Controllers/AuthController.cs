@@ -30,7 +30,7 @@ public class AuthController : ControllerBase
         ServiceResult<AuthResponseDTO> result = await _authService.RegisterAsync(registerUser);
         if (!result.success)
         {
-            return BadRequest(result);
+            return BadRequest(result.Errors);
         }
         setRefreshToken(result.Data.RefreshToken.Token,result.Data.RefreshToken.ExpireOn);
         return Ok(result);
@@ -47,12 +47,12 @@ public class AuthController : ControllerBase
         ServiceResult<AuthResponseDTO> result = await _authService.LoginAsync(login);
         if (!result.success)
         {
-            return BadRequest(result);
+            return BadRequest(result.Errors);
+
         }
-        if (!string.IsNullOrEmpty(result.Data.Token))
-        {
-            setRefreshToken(result.Data.RefreshToken.Token,result.Data.RefreshToken.ExpireOn);
-        }
+
+        setRefreshToken(result.Data.RefreshToken.Token,result.Data.RefreshToken.ExpireOn);
+
         return Ok(result);
     }
 
@@ -70,11 +70,10 @@ public class AuthController : ControllerBase
 
         if (!result.success)
         {
-            return BadRequest(result);
+            return BadRequest(result.Errors);
         }
-
+        setRefreshToken(result.Data.RefreshToken.Token,result.Data.RefreshToken.ExpireOn);
         return Ok(result);
-
     }
     
     [HttpPost("logout/{id}")]
@@ -91,7 +90,7 @@ public class AuthController : ControllerBase
 
         if (!result.success)
         {
-            return BadRequest(result);
+            return BadRequest(result.Errors);
         }
         
 

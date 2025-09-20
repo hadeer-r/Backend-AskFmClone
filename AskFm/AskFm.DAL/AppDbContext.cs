@@ -47,6 +47,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser,IdentityRole<int>,
                 .HasColumnType("BIT")
                 .HasDefaultValue(false);
         }
+        modelBuilder.Entity<ApplicationUser>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Comment>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Notification>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Thread>().HasQueryFilter(e => !e.IsDeleted);
         
     }
 

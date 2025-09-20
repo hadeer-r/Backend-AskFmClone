@@ -1,6 +1,8 @@
 using AskFm.DAL.Interfaces;
 using AskFm.DAL.Models;
 using AskFm.DAL.Repositories;
+using Microsoft.EntityFrameworkCore.Storage;
+using Thread = AskFm.DAL.Models.Thread;
 
 namespace AskFm.DAL;
 
@@ -9,7 +11,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly AppDbContext _context;
 
     private IRepository<ApplicationUser> _users;
-    private IRepository<Models.Thread> _threads;
+    private IRepository<Thread> _threads;
     private IRepository<SavedThreads> _savedThreads;
     private IRepository<ThreadLike> _threadLikes;
     private IRepository<Comment> _comments;
@@ -35,12 +37,12 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    public IRepository<Models.Thread> Threads {
+    public IRepository<Thread> Threads {
         get
         {
             if (_threads == null)
             {
-                _threads = new Repository<Models.Thread>(_context);
+                _threads = new Repository<Thread>(_context);
             }
             return _threads;
         }
@@ -118,7 +120,6 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    IRepository<Models.Thread> IUnitOfWork.Threads => throw new NotImplementedException();
 
     public void Dispose()
     {
@@ -130,8 +131,14 @@ public class UnitOfWork : IUnitOfWork
         return _context.SaveChanges();
     }
 
-    public Task<int> SaveAsync()
+    public async Task<int> SaveAsync()
     {
-        return _context.SaveChangesAsync();
+        return await _context.SaveChangesAsync();
     }
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync()
+    {
+        return await _context.Database.BeginTransactionAsync();
+    }
+    
 }

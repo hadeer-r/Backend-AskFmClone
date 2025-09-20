@@ -22,42 +22,152 @@ public class UserController : ControllerBase
         _authService = authService;
         _userService = userService;
     }
-    [HttpGet]
-    [Route("GetUsers")]
-    public async Task<IActionResult> GetUsers()
-    {
-        var result = _unitOfWork.Users.GetAll().Select(u => new
-        {
-            name = u.Name,
-            email = u.Email,
-            username = u.UserName,
-            bio = u.Bio,
-        }).ToList();
-        return Ok(result);
-    }
 
     [HttpGet]
-    [Route("current-user")]
+    [Route("profile")]
     public async Task<IActionResult> GetCurrentUserAsync()
     {
         var result = await _userService.GetCurrentUserAsync();
+        
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        ReadUserDTO readUserDTO = new ReadUserDTO()
+        {
+            Name = result.Data.Name,
+            Email = result.Data.Email,
+            AvatarPath = result.Data.AvatarPath,
+            Bio = result.Data.Bio,
+            followerCount = result.Data.FollowersCount,
+            LastSeen = result.Data.LastSeen,
+        };
+        return Ok(readUserDTO);
+    }
 
+    [HttpGet]
+    [Route("profile/{userId}")]
+    public async Task<IActionResult> GetUserAsync(int userId)
+    {
+        var result = await _userService.GetUserByIdAsync(userId);
         if (!result.success)
         {
             return BadRequest(result.Errors);
         }
         return Ok(result.Data);
     }
-    /*
-  GET Users only for now
-    getUserbyId
-    EditUser
-    DeleteUser
-    FollowUser
-    unfollowUser
-    reset password
+    
+    [HttpPost]
+    [Route("profile/update/{userId}")]
+    public async Task<IActionResult> UpdateUserAsync(int userId, UpdateUserDTO updatedUser)
+    {
+        if (!await _checkCurrentUser(userId))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, "Cannot Update this user");
+        }
+        var result = await _userService.UpdateUserAsync(userId, updatedUser);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        var userRead = await _userService.GetUserByIdAsync(userId);
+        return Ok(userRead);
+    }
+    
+    [HttpDelete]
+    [Route("profile/{userId}")]
+    public async Task<IActionResult> DeleteUserAsync(int userId)
+    {
+        if (!await _checkCurrentUser(userId))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, "Cannot Remove this user");
+        }
+        var result = await _userService.DeleteUserAsync(userId);
+        
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        return Ok();
+    }
+
+    [HttpPost]
+    [Route("profile/{followerId}/follow/{targetUserId}")]
+    public async Task<IActionResult> FollowUserAsync(int followerId, int targetUserId)
+    {
+        if (await _checkCurrentUser(targetUserId))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, "Cannot Follow this user");
+        }
+        if (!await _checkCurrentUser(followerId))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, "User can't perform this follow");
+        }
+
+        var result = await _userService.FollowUserAsync(followerId, targetUserId);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        return Ok();
+    }
+    
+    [HttpPost]
+    [Route("profile/{followerId}/unfollow/{targetUserId}")]
+    public async Task<IActionResult> UnFollowUserAsync(int followerId, int targetUserId)
+    {
+        if (await _checkCurrentUser(targetUserId))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, "Cannot Unfollow the current user");
+        }
+        if (!await _checkCurrentUser(followerId))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, "User can't perform this unfollow");
+        }
+
+        var result = await _userService.UnfollowUserAsync(followerId, targetUserId);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        return Ok();
+    }
+    
+    [HttpPost]
+    [Route("profile/update/pass/{userId}")]
+    public async Task<IActionResult> UpdatePassword(int userId, UpdatePasswordDTO udpatePasswordDto)
+    {
+        if (await _checkCurrentUser(userId))
+        {
+            
+            return StatusCode(StatusCodes.Status403Forbidden, "Invalid Operation");
+        }
+        var result = await _userService.UpdatePassword(userId, udpatePasswordDto);
+
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok();
+    }
+    
+    
+    //-------------------------------------------------------------------
+    // Helper functions
+    private async Task<bool> _checkCurrentUser(int userId)
+    {
+        var current_user = await _userService.GetCurrentUserAsync();
+        return current_user.Data.Id == userId;
+    }
+
+    
+    /* TODO 
+    update email
     confirm email
-    Helper Function: getCurrentUserId
-  */   
+    check user not deleted in login
+    
+    */   
     
 }

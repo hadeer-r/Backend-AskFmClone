@@ -14,8 +14,11 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using AskFm.BLL.Services.UserIdentityService;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using Castle.Components.DictionaryAdapter.Xml;
 
 namespace AskFm.API;
+
 
 public class Program
 {
@@ -24,6 +27,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
+
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
@@ -34,7 +38,6 @@ public class Program
         {
             throw new Exception("Connection string is null");
         }
-
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddDbContext<AppDbContext>(options =>
             options
@@ -47,9 +50,39 @@ public class Program
 
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
+        builder.Services.AddScoped<ICommentService, CommentService>();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(setup =>
+        {
+            // Include 'SecurityScheme' to use JWT Authentication
+            var jwtSecurityScheme = new OpenApiSecurityScheme
+            {
+                BearerFormat = "JWT",
+                Name = "JWT Authentication",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Scheme = JwtBearerDefaults.AuthenticationScheme,
+                Description = "Put **_ONLY_** your JWT Bearer token on textbox below!",
+
+                Reference = new OpenApiReference
+                {
+                    Id = JwtBearerDefaults.AuthenticationScheme,
+                    Type = ReferenceType.SecurityScheme
+                }
+            };
+
+            setup.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
+
+            setup.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                { jwtSecurityScheme, Array.Empty<string>() }
+            });
+
+        });
         
+
         JwtOptions jwtOptions = new JwtOptions
         {
             Issuer = Environment.GetEnvironmentVariable("ISSUER"),
@@ -109,8 +142,9 @@ public class Program
             {
                 options.DefaultAuthenticateScheme = "Bearer";
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                
             })
-            .AddJwtBearer(Options =>
+            .AddJwtBearer( Options =>
             {
                 Options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -140,7 +174,6 @@ public class Program
                     }
                 };
             });
-
         builder.Services.AddAuthorization();
         builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
             {
@@ -163,15 +196,30 @@ public class Program
                 options.SignIn.RequireConfirmedEmail = false;
                 options.SignIn.RequireConfirmedAccount = false;
                 options.SignIn.RequireConfirmedPhoneNumber = false;
+                /*
+                 * close confirmed email imediatly in register,
+                 * but in other scenario we will block some action untill the user verify his email
+                 */
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
+        
+        
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = builder.Configuration.GetConnectionString("Redis");
+            options.InstanceName = "AskFmCache";
+        });
+        
+        builder.Services.AddSingleton<RedisCacheService>();
 
+            
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
+            app.UseSwagger();
             app.MapOpenApi();
             app.UseSwaggerUI(options =>
             {

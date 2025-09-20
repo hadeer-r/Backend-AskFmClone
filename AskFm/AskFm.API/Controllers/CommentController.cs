@@ -1,0 +1,161 @@
+using AskFm.BLL.DTO;
+using AskFm.BLL.Services;
+using AskFm.BLL.Services.UserIdentityService;
+using AskFm.DAL.Interfaces;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AskFm.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(AuthenticationSchemes = "Bearer")]
+public class CommentController : ControllerBase
+{
+    
+    private readonly ICommentLikeService _commentLikeService;
+    private readonly ICommentService _commentService;
+    private readonly ILogger<CommentController> _logger;
+    private readonly IUserService _userService;
+    
+    
+    public CommentController(
+        ICommentLikeService commentLikeService,
+        ICommentService commentService,
+        IUserService userService,
+        ILogger<CommentController> logger)
+    {
+        _commentLikeService = commentLikeService;
+        _logger = logger;
+        _commentService = commentService;
+        _userService = userService;
+    }
+    
+    
+    
+    
+    
+    // GET api/comment/{id}/likes -> get all the likes for a Comment with id = id
+    [HttpGet("{id}/likes")]
+    public async Task<IActionResult> GetAllLikes(int id)
+    {
+        try
+        {
+            var likes = await _commentLikeService.GetLikesForCommentAsync(id);
+            if (!likes.success)
+            {
+                return BadRequest(likes.Errors);
+            }
+            return Ok(likes);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Comment not found with id: {CommentId}", id);
+            return NotFound(new
+            {
+                message = ex.Message,
+                
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving likes for comment id: {CommentId}", id);
+            return StatusCode(500, new { message = "An error occurred while retrieving likes" });
+        }
+    }
+    
+    
+    
+    
+    // POST api/comment/{id}/likes -> add a like for a Comment with id = id
+    [HttpPost("{id}/likes")]
+    public async Task<IActionResult> AddLike(int id)
+    {
+        try
+        {
+            var user = await _userService.GetCurrentUserAsync();
+            
+            if (!user.success)
+            {
+                return BadRequest(user.Errors);
+            }
+            
+            var createdLike = await _commentLikeService.AddLikeAsync(id, user.Data.Id);
+            
+            if (!createdLike.success)
+            {
+                return BadRequest(createdLike.Errors);
+            }
+            return CreatedAtAction(
+                nameof(GetAllLikes), 
+                new { id = id }, 
+                createdLike.Data);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request to add like to comment id: {CommentId}", id);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Cannot add like to comment id: {CommentId}", id);
+            return Conflict(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding like to comment id: {CommentId}", id);
+            return StatusCode(500, new { message = "An error occurred while adding like" });
+        }
+    }
+    
+    
+    
+    
+    [HttpDelete("{id}/likes")]
+    public async Task<IActionResult> DeleteLike(int id)
+    {
+        int userId = 0;
+        try
+        {
+            
+            var user = await _userService.GetCurrentUserAsync();
+
+            if (user==null || !user.success)
+                return BadRequest(user.Errors);
+            
+            
+            userId = user.Data.Id;
+            var comment = await _commentService.GetCommentAsync(id);
+            
+            if (comment == null || !user.success)
+                return BadRequest(user.Errors);
+            
+            
+            var result = await _commentLikeService.DeleteLikeAsync(id, userId);
+
+            if (!result.success)
+            {
+                return BadRequest(result.Errors);
+            }
+            
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Like not found for comment id: {CommentId} and user {UserId}", id, userId);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized delete attempt for comment id: {CommentId} by user {UserId}", id, userId);
+            return Forbid();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting like from comment id: {CommentId} by user {UserId}", id, userId);
+            return StatusCode(500, new { message = "An error occurred while deleting like" });
+        }
+    }
+    
+}
