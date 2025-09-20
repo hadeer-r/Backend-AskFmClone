@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AskFm.BLL.DTO;
 using AskFm.BLL.Services;
 using AskFm.DAL.Enums;
@@ -107,7 +108,8 @@ namespace AskFm.API.Controllers
 
         private int GetCurrentUserId()
         {
-            var userIdClaim = User.FindFirst("UserId")?.Value;
+            // Use the standard NameIdentifier claim
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
                 throw new UnauthorizedAccessException("Invalid user token");
