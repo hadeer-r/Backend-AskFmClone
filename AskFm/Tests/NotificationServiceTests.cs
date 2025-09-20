@@ -76,15 +76,18 @@ namespace AskFm.BLL.Tests.Services
             var result = await _notificationService.GetUserNotifications(userId, pageNumber, pageSize);
 
             // Assert
-            Assert.Single(result);
-            Assert.Equal(1, result[0].Id);
-            Assert.Equal(NotificationStatus.QUESTION.ToString(), result[0].Type);
-            Assert.Equal("Test notification", result[0].Message);
-            Assert.False(result[0].IsRead);
-            Assert.Equal("test_user", result[0].Actor.Username);
-            Assert.Equal("test.jpg", result[0].Actor.AvatarPath);
-            Assert.Equal(2, result[0].Actor.Id);
-            Assert.Equal(1, result[0].Pagination.TotalCount);
+            Assert.True(result.success);
+            Assert.Null(result.Errors);
+            Assert.NotNull(result.Data);
+            Assert.Single(result.Data);
+            Assert.Equal(1, result.Data[0].Id);
+            Assert.Equal(NotificationStatus.QUESTION.ToString(), result.Data[0].Type);
+            Assert.Equal("Test notification", result.Data[0].Message);
+            Assert.False(result.Data[0].IsRead);
+            Assert.Equal("test_user", result.Data[0].Actor.Username);
+            Assert.Equal("test.jpg", result.Data[0].Actor.AvatarPath);
+            Assert.Equal(2, result.Data[0].Actor.Id);
+            Assert.Equal(1, result.Data[0].Pagination.TotalCount);
         }
 
         [Fact]
@@ -117,13 +120,16 @@ namespace AskFm.BLL.Tests.Services
             var result = await _notificationService.GetUserNotifications(userId, pageNumber, pageSize);
 
             // Assert
-            Assert.Single(result);
-            Assert.Equal(1, result[0].Id);
-            Assert.Equal(NotificationStatus.QUESTION.ToString(), result[0].Type);
-            Assert.Equal("Test notification", result[0].Message);
-            Assert.False(result[0].IsRead);
-            Assert.Null(result[0].Actor);
-            Assert.Equal(1, result[0].Pagination.TotalCount);
+            Assert.True(result.success);
+            Assert.Null(result.Errors);
+            Assert.NotNull(result.Data);
+            Assert.Single(result.Data);
+            Assert.Equal(1, result.Data[0].Id);
+            Assert.Equal(NotificationStatus.QUESTION.ToString(), result.Data[0].Type);
+            Assert.Equal("Test notification", result.Data[0].Message);
+            Assert.False(result.Data[0].IsRead);
+            Assert.Null(result.Data[0].Actor);
+            Assert.Equal(1, result.Data[0].Pagination.TotalCount);
         }
 
         [Fact]
@@ -158,19 +164,22 @@ namespace AskFm.BLL.Tests.Services
             var result = await _notificationService.GetNotificationsByType(userId, category, pageNumber, pageSize);
 
             // Assert
-            Assert.Single(result);
-            Assert.Equal(1, result[0].Id);
-            Assert.Equal(category.ToUpper(), result[0].Type);
-            Assert.Equal("Test notification", result[0].Message);
-            Assert.False(result[0].IsRead);
-            Assert.Equal("test_user", result[0].Actor.Username);
-            Assert.Equal("test.jpg", result[0].Actor.AvatarPath);
-            Assert.Equal(2, result[0].Actor.Id);
-            Assert.Equal(1, result[0].Pagination.TotalCount);
+            Assert.True(result.success);
+            Assert.Null(result.Errors);
+            Assert.NotNull(result.Data);
+            Assert.Single(result.Data);
+            Assert.Equal(1, result.Data[0].Id);
+            Assert.Equal(category.ToUpper(), result.Data[0].Type);
+            Assert.Equal("Test notification", result.Data[0].Message);
+            Assert.False(result.Data[0].IsRead);
+            Assert.Equal("test_user", result.Data[0].Actor.Username);
+            Assert.Equal("test.jpg", result.Data[0].Actor.AvatarPath);
+            Assert.Equal(2, result.Data[0].Actor.Id);
+            Assert.Equal(1, result.Data[0].Pagination.TotalCount);
         }
 
         [Fact]
-        public async Task GetNotificationsByType_WithInvalidCategory_ThrowsArgumentException()
+        public async Task GetNotificationsByType_WithInvalidCategory_ReturnsFailureResult()
         {
             // Arrange
             int userId = 1;
@@ -178,9 +187,14 @@ namespace AskFm.BLL.Tests.Services
             int pageNumber = 1;
             int pageSize = 10;
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _notificationService.GetNotificationsByType(userId, category, pageNumber, pageSize));
-            Assert.Contains("Invalid notification category", ex.Message);
+            // Act
+            var result = await _notificationService.GetNotificationsByType(userId, category, pageNumber, pageSize);
+
+            // Assert
+            Assert.False(result.success);
+            Assert.NotNull(result.Errors);
+            Assert.Contains("Invalid notification category", result.Errors[0]);
+            Assert.Null(result.Data);
         }
 
         [Fact]
@@ -209,14 +223,16 @@ namespace AskFm.BLL.Tests.Services
             var result = await _notificationService.MarkNotificationAsRead(notificationId, userId);
 
             // Assert
+            Assert.True(result.success);
+            Assert.Null(result.Errors);
+            Assert.Equal("notification has been read", result.Data);
             Assert.True(notification.IsRead);
-            Assert.Equal("notification has been read", result);
             _unitOfWorkMock.Verify(p => p.Notifications.Update(notification), Times.Once);
             _unitOfWorkMock.Verify(p => p.SaveAsync(), Times.Once);
         }
 
         [Fact]
-        public async Task MarkNotificationAsRead_WithInvalidId_ThrowsInvalidOperationException()
+        public async Task MarkNotificationAsRead_WithInvalidId_ReturnsFailureResult()
         {
             // Arrange
             var notificationId = 999;
@@ -224,11 +240,14 @@ namespace AskFm.BLL.Tests.Services
             _notificationRepositoryMock.Setup(p => p.GetUserNotificationById(notificationId, userId))
                 .ReturnsAsync((Notification)null);
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _notificationService.MarkNotificationAsRead(notificationId, userId));
+            // Act
+            var result = await _notificationService.MarkNotificationAsRead(notificationId, userId);
 
-            Assert.Contains("Notification not found or access denied", ex.Message);
+            // Assert
+            Assert.False(result.success);
+            Assert.NotNull(result.Errors);
+            Assert.Contains("Notification not found or access denied.", result.Errors[0]);
+            Assert.Null(result.Data);
         }
 
         [Fact]
@@ -270,7 +289,9 @@ namespace AskFm.BLL.Tests.Services
             var result = await _notificationService.MarkAllNotificationsAsRead(userId);
 
             // Assert
-            Assert.Equal("All notifications marked as read", result);
+            Assert.True(result.success);
+            Assert.Null(result.Errors);
+            Assert.Equal("All notifications marked as read", result.Data);
             Assert.All(unreadNotifications, n => Assert.True(n.IsRead));
             _unitOfWorkMock.Verify(p => p.Notifications.Update(It.IsAny<Notification>()), Times.Exactly(2));
             _unitOfWorkMock.Verify(p => p.SaveAsync(), Times.Once);
@@ -292,9 +313,20 @@ namespace AskFm.BLL.Tests.Services
                 .ReturnsAsync(actorUser);
 
             // Act
-            await _notificationService.CreateNotification(userId, type, resourceId, message);
+            var result = await _notificationService.CreateNotification(userId, type, resourceId, message);
 
             // Assert
+            Assert.True(result.success);
+            Assert.Null(result.Errors);
+            Assert.NotNull(result.Data);
+            Assert.Equal(userId, result.Data.UserId);
+            Assert.Equal(type.ToString(), result.Data.Type);
+            Assert.Equal(resourceId, result.Data.ResourceId);
+            Assert.Equal(message, result.Data.Message);
+            Assert.False(result.Data.IsRead);
+            Assert.Equal("test_user", result.Data.Actor.Username);
+            Assert.Equal("test.jpg", result.Data.Actor.AvatarPath);
+            Assert.Equal(2, result.Data.Actor.Id);
             _unitOfWorkMock.Verify(p => p.Notifications.AddAsync(It.IsAny<Notification>()), Times.Once);
             _unitOfWorkMock.Verify(p => p.SaveAsync(), Times.Once);
             _mockClientProxy.Verify(p => p.SendCoreAsync("ReceiveNotification", It.IsAny<object[]>(), default), Times.Once);

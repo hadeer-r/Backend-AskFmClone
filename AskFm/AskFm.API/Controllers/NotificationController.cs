@@ -1,3 +1,4 @@
+using AskFm.BLL.DTO;
 using AskFm.BLL.Services;
 using AskFm.DAL.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -113,13 +114,5 @@ namespace AskFm.API.Controllers
             }
             return userId;
         }
-    }
-
-    public class CreateNotificationRequest
-    {
-        public int UserId { get; set; }
-        public NotificationStatus Type { get; set; }
-        public int ResourceId { get; set; }
-        public string Message { get; set; }
     }
 }
