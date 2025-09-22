@@ -1,0 +1,120 @@
+using System.Security.Claims;
+using AskFm.BLL.DTO;
+using AskFm.BLL.Services;
+using AskFm.DAL.Enums;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AskFm.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class NotificationController : ControllerBase
+    {
+        private readonly INotificationService _notificationService;
+
+        public NotificationController(INotificationService notificationService)
+        {
+            _notificationService = notificationService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUserNotifications([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var notifications = await _notificationService.GetUserNotifications(userId, pageNumber, pageSize);
+                return Ok(notifications);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("type/{category}")]
+        public async Task<IActionResult> GetNotificationsByType(string category, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var response = await _notificationService.GetNotificationsByType(userId, category, pageNumber, pageSize);
+                return Ok(response);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPut("{notificationId}/read")]
+        public async Task<IActionResult> MarkNotificationAsRead(int notificationId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _notificationService.MarkNotificationAsRead(notificationId, userId);
+                return Ok(new { message = result });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("read-all")]
+        public async Task<IActionResult> MarkAllNotificationsAsRead()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _notificationService.MarkAllNotificationsAsRead(userId);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationRequest request)
+        {
+            try
+            {
+                await _notificationService.CreateNotification(request.UserId, request.Type, request.ResourceId, request.Message);
+                return Ok(new { message = "Notification created successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        private int GetCurrentUserId()
+        {
+            // Use the standard NameIdentifier claim
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                throw new UnauthorizedAccessException("Invalid user token");
+            }
+            return userId;
+        }
+    }
+}

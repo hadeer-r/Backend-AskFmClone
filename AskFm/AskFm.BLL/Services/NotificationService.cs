@@ -1,0 +1,210 @@
+using AskFm.BLL.DTO;
+using AskFm.BLL.Hub;
+using AskFm.DAL.Enums;
+using AskFm.DAL.Interfaces;
+using AskFm.DAL.Models;
+using Microsoft.AspNetCore.SignalR;
+
+namespace AskFm.BLL.Services;
+
+public class NotificationService : INotificationService
+{
+    private readonly INotificationRepository _notificationRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IHubContext<NotificationHub> _hubContext;
+
+    public NotificationService(INotificationRepository notificationRepository, IUnitOfWork unitOfWork, IHubContext<NotificationHub> hubContext)
+    {
+        _notificationRepository = notificationRepository;
+        _unitOfWork = unitOfWork;
+        _hubContext = hubContext;
+    }
+
+    public async Task<ServiceResult<List<NotificationDto>>> GetUserNotifications(int userId, int pageNumber = 1, int pageSize = 10)
+    {
+        try
+        {
+            var (notifications, totalCount) = await _notificationRepository.GetAllNotifications(userId, pageNumber, pageSize);
+
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var notificationDtos = new List<NotificationDto>();
+
+            foreach (var notification in notifications)
+            {
+                var actorUser = await _notificationRepository.GetActorUserByResourceId(notification.ResourceId, notification.Type);
+                notificationDtos.Add(new NotificationDto
+                {
+                    Id = notification.Id,
+                    UserId = notification.UserId,
+                    Type = notification.Type.ToString(),
+                    ResourceId = notification.ResourceId,
+                    Message = notification.Message,
+                    IsRead = notification.IsRead,
+                    CreatedAt = notification.CreatedAt,
+                    Actor = actorUser == null ? null : new ActorDto
+                    {
+                        Id = actorUser.Id,
+                        Username = actorUser?.UserName ?? "Unknown",
+                        AvatarPath = actorUser?.AvatarPath ?? String.Empty
+                    },
+                    Pagination = new PaginationDto
+                    {
+                        CurrentPage = pageNumber,
+                        TotalPages = totalPages,
+                        TotalCount = totalCount,
+                        HasNext = pageNumber < totalPages,
+                        HasPrevious = pageNumber > 1
+                    }
+                });
+            }
+            return await ServiceResult<List<NotificationDto>>.Success(notificationDtos);
+        }
+        catch (Exception ex)
+        {
+            return await ServiceResult<List<NotificationDto>>.Failure(new List<string> { ex.Message });
+        }
+    }
+
+    public async Task<ServiceResult<List<NotificationDto>>> GetNotificationsByType(int userId, string category, int pageNumber = 1, int pageSize = 10)
+    {
+        try
+        {
+            // Convert category to uppercase and match with enum
+            if (!Enum.TryParse<NotificationStatus>(category.ToUpper(), out var notificationType))
+                return await ServiceResult<List<NotificationDto>>.Failure(new List<string> { $"Invalid notification category: {category}" });
+
+            var (notifications, totalCount) = await _notificationRepository.GetNotificationsByType(userId, notificationType, pageNumber, pageSize);
+
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var notificationDtos = new List<NotificationDto>();
+
+            foreach (var notification in notifications)
+            {
+                var actorUser = await _notificationRepository.GetActorUserByResourceId(notification.ResourceId, notification.Type);
+                notificationDtos.Add(new NotificationDto
+                {
+                    Id = notification.Id,
+                    UserId = notification.UserId,
+                    Type = notification.Type.ToString(),
+                    ResourceId = notification.ResourceId,
+                    Message = notification.Message,
+                    IsRead = notification.IsRead,
+                    CreatedAt = notification.CreatedAt,
+                    Actor = actorUser == null ? null : new ActorDto
+                    {
+                        Id = actorUser.Id,
+                        Username = actorUser?.UserName ?? "Unknown",
+                        AvatarPath = actorUser?.AvatarPath ?? String.Empty
+                    },
+                    Pagination = new PaginationDto
+                    {
+                        CurrentPage = pageNumber,
+                        TotalPages = totalPages,
+                        TotalCount = totalCount,
+                        HasNext = pageNumber < totalPages,
+                        HasPrevious = pageNumber > 1
+                    }
+                });
+            }
+
+            return await ServiceResult<List<NotificationDto>>.Success(notificationDtos);
+        }
+        catch (Exception ex)
+        {
+            return await ServiceResult<List<NotificationDto>>.Failure(new List<string> { ex.Message });
+        }
+    }
+
+    public async Task<ServiceResult<string>> MarkNotificationAsRead(int notificationId, int userId)
+    {
+        try
+        {
+            var notification = await _notificationRepository.GetUserNotificationById(notificationId, userId);
+            if (notification == null)
+                return await ServiceResult<string>.Failure(new List<string> { "Notification not found or access denied." });
+
+            notification.IsRead = true;
+            _unitOfWork.Notifications.Update(notification);
+            await _unitOfWork.SaveAsync();
+
+            return await ServiceResult<string>.Success("notification has been read");
+        }
+        catch (Exception ex)
+        {
+            return await ServiceResult<string>.Failure(new List<string> { ex.Message });
+        }
+    }
+
+    public async Task<ServiceResult<string>> MarkAllNotificationsAsRead(int userId)
+    {
+        try
+        {
+            var unreadNotifications = await _unitOfWork.Notifications.FindAllAsync(n => n.UserId == userId && !n.IsRead);
+
+            foreach (var notification in unreadNotifications)
+            {
+                notification.IsRead = true;
+                _unitOfWork.Notifications.Update(notification);
+            }
+
+            await _unitOfWork.SaveAsync();
+            return await ServiceResult<string>.Success("All notifications marked as read");
+        }
+        catch (Exception ex)
+        {
+            return await ServiceResult<string>.Failure(new List<string> { ex.Message });
+        }
+    }
+
+    public async Task<ServiceResult<NotificationDto>> CreateNotification(int userId, NotificationStatus type, int resourceId, string message)
+    {
+        try
+        {
+            var notification = new Notification
+            {
+                UserId = userId,
+                Type = type,
+                ResourceId = resourceId,
+                Message = message,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.Notifications.AddAsync(notification);
+            await _unitOfWork.SaveAsync();
+
+            // Get actor information for the notification
+            var actorUser = await _notificationRepository.GetActorUserByResourceId(resourceId, type);
+
+            var notificationDto = new NotificationDto
+            {
+                Id = notification.Id,
+                UserId = notification.UserId,
+                Type = notification.Type.ToString(),
+                ResourceId = notification.ResourceId,
+                Message = notification.Message,
+                IsRead = notification.IsRead,
+                CreatedAt = notification.CreatedAt,
+                Actor = actorUser == null ? null : new ActorDto
+                {
+                    Id = actorUser.Id,
+                    Username = actorUser.UserName ?? "Unknown",
+                    AvatarPath = actorUser.AvatarPath ?? string.Empty
+                }
+            };
+
+            // Send real-time notification to the specific user
+            await _hubContext.Clients.Group($"user_{userId}")
+                .SendAsync("ReceiveNotification", notificationDto);
+
+            return await ServiceResult<NotificationDto>.Success(notificationDto);
+        }
+        catch (Exception ex)
+        {
+            return await ServiceResult<NotificationDto>.Failure(new List<string> { ex.Message });
+        }
+    }
+}
