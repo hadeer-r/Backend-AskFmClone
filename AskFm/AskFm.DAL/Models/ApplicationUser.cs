@@ -29,7 +29,4 @@ public class ApplicationUser : IdentityUser<int>, ITrackable
     public DateTime UpdatedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     
-    
-    // tokens
-    public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
 }

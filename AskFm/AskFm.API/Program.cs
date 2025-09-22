@@ -16,6 +16,9 @@ using Microsoft.OpenApi.Models;
 using AskFm.BLL.Services.UserIdentityService;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Castle.Components.DictionaryAdapter.Xml;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Shared;
+using IEmailSender = AskFm.BLL.Services.IEmailSender;
 
 namespace AskFm.API;
 
@@ -29,7 +32,6 @@ public class Program
         // Add services to the container.
 
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
         Env.Load();
@@ -38,12 +40,16 @@ public class Program
         {
             throw new Exception("Connection string is null");
         }
+
+        builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddHttpContextAccessor();
+        // DbContext
         builder.Services.AddDbContext<AppDbContext>(options =>
             options
                 .UseLazyLoadingProxies()
                 .UseSqlServer(ConnectionString));
-        
+        // -------------------------------------------------        
+        // Register the repositories and services
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
         builder.Services.AddScoped<INotificationService, NotificationService>();
@@ -52,11 +58,12 @@ public class Program
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
         builder.Services.AddScoped<ICommentService, CommentService>();
+        builder.Services.AddScoped<IEmailSender,EmailSender>();
         builder.Services.AddControllers();
-        builder.Services.AddEndpointsApiExplorer();
+
+        // Configure Swagger with JWT Authentication
         builder.Services.AddSwaggerGen(setup =>
         {
-            // Include 'SecurityScheme' to use JWT Authentication
             var jwtSecurityScheme = new OpenApiSecurityScheme
             {
                 BearerFormat = "JWT",
@@ -83,13 +90,15 @@ public class Program
         });
         
 
+        // Authentication & Authorization
+
         JwtOptions jwtOptions = new JwtOptions
         {
             Issuer = Environment.GetEnvironmentVariable("ISSUER"),
             Audience = Environment.GetEnvironmentVariable("AUDIENCE"),
             SigningKey = Environment.GetEnvironmentVariable("SIGNINGKEY"),
-            AccessExpiration = int.Parse(Environment.GetEnvironmentVariable("TOKEN_EXP")),
-            AccessRefreshTokenExpiration = int.Parse(Environment.GetEnvironmentVariable("REFRESH_TOKEN_EXP")),
+            AccessExpiration = builder.Configuration.GetValue<int>("ExpireTimes:Jwt_Token_Exp"),
+            AccessRefreshTokenExpiration =builder.Configuration.GetValue<int>("ExpireTimes:Refresh_Token_Exp")
         };
         if (jwtOptions == null)
         {
@@ -134,14 +143,16 @@ public class Program
             Options.Issuer = Environment.GetEnvironmentVariable("ISSUER");
             Options.Audience = Environment.GetEnvironmentVariable("AUDIENCE");
             Options.SigningKey = Environment.GetEnvironmentVariable("SIGNINGKEY");
-            Options.AccessExpiration = int.Parse(Environment.GetEnvironmentVariable("TOKEN_EXP"));
-            Options.AccessRefreshTokenExpiration = int.Parse(Environment.GetEnvironmentVariable("REFRESH_TOKEN_EXP"));
+            Options.AccessExpiration = builder.Configuration.GetValue<int>("ExpireTimes:Jwt_Token_Exp");
+            Options.AccessRefreshTokenExpiration = builder.Configuration.GetValue<int>("ExpireTimes:Refresh_Token_Exp");
         });
-        
+        builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(2));
+
         builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = "Bearer";
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                
                 
             })
             .AddJwtBearer( Options =>
@@ -157,6 +168,21 @@ public class Program
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
                     ClockSkew = TimeSpan.FromMinutes(0)
                 };
+                Options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var jti = context.Principal.Claims.FirstOrDefault(c => c.Type == "jti")?.Value;
+                        var redis = context.HttpContext.RequestServices.GetRequiredService<RedisCacheService>();
+
+                        var cachedToken = await redis.GetCacheAsync<int>(AppConstants.JwtCacheKey(jti));
+                        if (cachedToken <= 0)
+                        {
+                            context.Fail("Token revoked or expired");
+                        }
+                    }
+                };
+
 
                 // Enable JWT authentication for SignalR
                 Options.Events = new JwtBearerEvents
@@ -175,6 +201,9 @@ public class Program
                 };
             });
         builder.Services.AddAuthorization();
+       
+       
+       // Identity
         builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
             {
                 //password configuration
@@ -204,7 +233,7 @@ public class Program
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
         
-        
+        // Redis Cache
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = builder.Configuration.GetConnectionString("Redis");
@@ -212,8 +241,7 @@ public class Program
         });
         
         builder.Services.AddSingleton<RedisCacheService>();
-
-            
+ 
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.

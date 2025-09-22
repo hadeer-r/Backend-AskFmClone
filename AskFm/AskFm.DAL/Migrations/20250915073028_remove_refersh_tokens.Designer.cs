@@ -4,6 +4,7 @@ using AskFm.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AskFm.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250915073028_remove_refersh_tokens")]
+    partial class remove_refersh_tokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -296,17 +299,7 @@ namespace AskFm.DAL.Migrations
                         .HasColumnType("BIT")
                         .HasDefaultValue(false);
 
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("NVARCHAR");
-
                     b.Property<int>("ResourceId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -316,6 +309,13 @@ namespace AskFm.DAL.Migrations
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("isRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("jsonContent")
+                        .IsRequired()
+                        .HasColumnType("NVARCHAR");
 
                     b.HasKey("Id");
 

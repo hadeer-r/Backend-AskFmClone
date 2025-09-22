@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using AskFm.BLL.DTO.UserDTOs;
 using AskFm.BLL.Services;
 using AskFm.BLL.Services.UserIdentityService;
@@ -13,10 +14,12 @@ namespace AskFm.API.Controllers;
 public class AuthController : ControllerBase
 {
     private IAuthService  _authService;
+    private IUserService _userService;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IUserService userService)
     {
         _authService = authService;
+        _userService = userService;
     }
     
     [HttpPost]
@@ -56,7 +59,7 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet]
+    [HttpPost]
     [Route("refresh-token/{id}")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<IActionResult> RefreshToken(int id)
@@ -80,23 +83,60 @@ public class AuthController : ControllerBase
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<IActionResult> Logout(int id)
     {
+        var currentUser = await _userService.GetCurrentUserAsync();
+        if (currentUser.Data == null || currentUser.Data.Id != id)
+        {
+            return BadRequest("Invalid data");
+        }
         string refreshToken = Request.Cookies["refreshToken"];
         if (string.IsNullOrEmpty(refreshToken))
         {
             return BadRequest("token Is required");
         }
         
-        ServiceResult<bool> result = await _authService.RevokeRefreshTokenAsync(id,refreshToken);
-
+        var result = await _authService.Logout(currentUser.Data.Id,refreshToken);
+        
         if (!result.success)
         {
             return BadRequest(result.Errors);
         }
         
-
         return Ok(result);
     }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [Route("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
+    {
+
+        var result = await _authService.ForgotPasswordAsync(forgotPasswordDto.Email);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok("Check Your Email");
+    }
     
+    [HttpPost]
+    [AllowAnonymous]
+    [Route("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
+    {
+        if (resetPasswordDto == null)
+        {
+            return BadRequest("Invalid Data");
+        }
+
+        var result = await _authService.ResetPasswordAsync(resetPasswordDto);
+        if (!result.success)
+        {
+            return BadRequest(result.Errors);
+        }
+        
+        return Ok("Password Reset Success");
+    }
     private void setRefreshToken(string refreshToken,DateTime expires)
     {
         var cookieOption = new CookieOptions()
